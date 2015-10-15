@@ -1,3 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'minitest', '~> 5.4.2'
+gemspec
+
+group :test do
+  gem 'minitest', '~> 5.4.2'
+end

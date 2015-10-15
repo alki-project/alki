@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'bundler'
-Bundler.require(:default,:test)
+Bundler.setup(:default,:test)
 require 'minitest/autorun'
 
 module TestHelper

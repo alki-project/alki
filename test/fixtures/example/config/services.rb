@@ -27,4 +27,9 @@ Alki do
     require 'array_output'
     ArrayOutput.new
   end
+  service :message_proc do
+    -> (msg) {
+      msg[0].upcase+msg[1..-1].downcase+"!"
+    }
+  end
 end

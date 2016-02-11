@@ -9,7 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Matt Edlefsen"]
   spec.email         = ["matt@xforty.com"]
   spec.summary       = %q{Base library for building applications.}
-  spec.homepage      = ""
+  spec.description   = %q{Base library for building applications. Provides tools for organizing and connection application units.}
+  spec.homepage      = "https://gitlab.xforty.com/matt/base-alki"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
@@ -18,5 +19,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.6"
-  spec.add_development_dependency "rake"
+  spec.add_development_dependency "rake", '~> 10.0'
 end

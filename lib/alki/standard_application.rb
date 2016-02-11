@@ -18,9 +18,19 @@ module Alki
       service :config_loader do
         Loader.new(File.expand_path('config',settings.root_dir))
       end
-      configure &config_loader.load('services')
+      import :services
       settings.set :app, self
       settings.configure &config_loader.load('settings')
+    end
+
+    def import(name)
+      configure &config_loader.load(name.to_s)
+    end
+
+    def load(group, name = group)
+      group(group) do
+        import(name)
+      end
     end
   end
 end

@@ -1,23 +1,14 @@
 Alki do
-  service :fizz do
-    require 'num_handler'
-    NumHandler.new 3, settings.fizz, output
-  end
-  service :buzz do
-    require 'num_handler'
-    NumHandler.new 5, settings.buzz, output
-  end
-  service :fizzbuzz do
-    require 'num_handler'
-    NumHandler.new 15, settings.fizzbuzz, output
-  end
-  service :echo do
-    require 'echo_handler'
-    EchoHandler.new output
-  end
+  load :handlers
+
   service :handler do
     require 'switch_handler'
-    SwitchHandler.new [fizzbuzz, fizz, buzz, echo]
+    SwitchHandler.new [
+                        handlers.fizzbuzz,
+                        handlers.fizz,
+                        handlers.buzz,
+                        handlers.echo
+                      ]
   end
   service :range_handler do
     require 'range_handler'

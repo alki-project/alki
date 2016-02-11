@@ -1,10 +1,10 @@
 require_relative '../test_helper'
 
-require 'alki/settings'
+require 'alki/application_settings'
 
-describe Alki::Settings do
+describe Alki::ApplicationSettings do
   before do
-    @settings = Alki::Settings.new
+    @settings = Alki::ApplicationSettings.new
   end
 
   describe :initialize do

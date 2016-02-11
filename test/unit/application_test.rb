@@ -56,20 +56,60 @@ describe Alki::Application do
     end
   end
 
-  describe :[] do
-    it 'should get or automatically create group' do
-      g1 = @app[:g1]
-      g1.wont_be_nil
-      @app[:g1].must_equal g1
+  describe :group do
+    it 'should create group with block' do
+      @app.configure do
+        group :g1 do
+        end
+      end
+      @app.g1.wont_be_nil
     end
 
-    it 'should return group that has services' do
-      @app[:g1].service(:test_m) { :test }
-      @app[:g1].test_m.must_equal :test
+    it 'should add services to group' do
+      @app.configure do
+        group :g1 do
+          service(:testm1) { :test1 }
+        end
+        group :g1 do
+          service(:testm2) { :test2 }
+        end
+      end
+      @app.g1.testm1.must_equal :test1
+      @app.g1.testm2.must_equal :test2
     end
 
-    it 'should return group that has subgroups' do
-      @app[:g1][:g2].wont_be_nil
+    it 'should allow creation of subgroups' do
+      @app.configure do
+        group :g1 do
+          group :g2 do
+            service(:test_m) { :test }
+          end
+        end
+      end
+      @app.g1.g2.test_m.must_equal :test
+    end
+
+    it 'should allow aliasing groups' do
+      @app.configure do
+        group :g1 do
+          service(:test_m) { :test }
+        end
+      end
+      @app.group(:g2,@app.g1)
+      @app[:g2].test_m.must_equal :test
+    end
+
+    it 'should allow moving groups to other applications' do
+      app2 = Alki::Application.new
+      app2.service(:test_m) { :test }
+      @app.group(:other,app2.root_group)
+      @app.other.test_m.must_equal :test
+    end
+
+    it 'should raise ArgumentError if non-group is provided' do
+      assert_raises ArgumentError do
+        @app.group(:test, {})
+      end
     end
   end
 
@@ -79,32 +119,17 @@ describe Alki::Application do
       @app.lookup('test_m').must_equal :test
     end
 
-    it 'should allow looking up services in groups using colon separators' do
-      @app[:g1].service(:test_m) { :test }
-      @app.lookup('g1:test_m').must_equal :test
-      @app[:g1][:g2].service(:test_m) { :test }
-      @app.lookup('g1:g2:test_m').must_equal :test
-    end
-  end
-
-  describe :[]= do
-    it 'should allow aliasing groups' do
-      @app[:g1].service(:test_m) { :test }
-      @app[:g2] = @app[:g1]
-      @app[:g2].test_m.must_equal :test
-    end
-
-    it 'should allow moving groups to other applications' do
-      app2 = Alki::Application.new
-      app2.service(:test_m) { :test }
-      @app[:other] = app2.root_group
-      @app[:other].test_m.must_equal :test
-    end
-
-    it 'should raise ArgumentError if non-group is provided' do
-      assert_raises ArgumentError do
-        @app[:test] = {}
+    it 'should allow looking up services in groups using dot separators' do
+      @app.configure do
+        group :g1 do
+          service(:test_m) { :test1 }
+          group :g2 do
+            service(:test_m) { :test2 }
+          end
+        end
       end
+      @app.lookup('g1.test_m').must_equal :test1
+      @app.lookup('g1.g2.test_m').must_equal :test2
     end
   end
 end

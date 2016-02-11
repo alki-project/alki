@@ -1,4 +1,4 @@
-require 'alki/settings'
+require 'alki/application_settings'
 require 'alki/application'
 require 'alki/loader'
 
@@ -9,7 +9,7 @@ module Alki
     end
 
     def initialize(root_dir, environment=nil)
-      super Alki::Settings.new(environment)
+      super Alki::ApplicationSettings.new(environment)
       settings.set :root_dir, root_dir
 
       lib_path = File.join(root_dir,'lib')

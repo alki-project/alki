@@ -1,19 +1,14 @@
 module Alki
   class Settings
-    def initialize(environment = nil)
-      set :environment, (environment || :development)
-    end
-
-    def configure(&blk)
-      self.instance_exec(&blk)
-    end
-
-    def set(key,value)
-      define_singleton_method(key) { value }
-    end
-
-    def environment?(*envs)
-      envs.include? self.environment and (!block_given? || yield)
+    def set(name,value=nil,&blk)
+      if blk
+        cache = nil
+        define_singleton_method(name.to_sym) do
+          cache ||= blk.call
+        end
+      else
+        define_singleton_method(name.to_sym) { value }
+      end
     end
 
     def [](key)

@@ -11,6 +11,13 @@ module Alki
       end
     end
 
+    def set_proc(name,&blk)
+      cache = nil
+      define_singleton_method(name.to_sym) do |*args|
+        (cache ||= blk.call).call(*args)
+      end
+    end
+
     def [](key)
       if respond_to? key
         send key

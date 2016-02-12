@@ -25,10 +25,10 @@ describe Alki::Application do
     end
   end
 
-  describe :root_group do
+  describe :root do
     it 'should allow extracting the root group from the application' do
       @app.service(:test_m) { :test }
-      @app.root_group.test_m.must_equal :test
+      @app.root.test_m.must_equal :test
     end
   end
 
@@ -102,7 +102,7 @@ describe Alki::Application do
     it 'should allow moving groups to other applications' do
       app2 = Alki::Application.new
       app2.service(:test_m) { :test }
-      @app.group(:other,app2.root_group)
+      @app.group(:other,app2.root)
       @app.other.test_m.must_equal :test
     end
 

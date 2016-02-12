@@ -1,15 +1,18 @@
 Alki do
-  service :fizz do
+  factory :num_handler do
     require 'num_handler'
-    NumHandler.new 3, settings.fizz, output
+    -> (num,str) {
+      NumHandler.new num, str, output
+    }
+  end
+  service :fizz do
+    num_handler 3, settings.fizz
   end
   service :buzz do
-    require 'num_handler'
-    NumHandler.new 5, settings.buzz, output
+    num_handler 5, settings.buzz
   end
   service :fizzbuzz do
-    require 'num_handler'
-    NumHandler.new 15, settings.fizzbuzz, output
+    num_handler 15, settings.fizzbuzz
   end
   service :echo do
     require 'echo_handler'

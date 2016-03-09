@@ -145,4 +145,15 @@ describe Alki::Application do
       @app.lookup('g1.g2.test_m').must_equal :test2
     end
   end
+
+  describe :delegate do
+    it 'should allow service reference cycles' do
+      @app.configure do
+        service(:all) { {print_all: delegate(:print_all)} }
+        service(:print_all) { list = all.keys; ->{ p list } }
+      end
+
+      @app.print_all.call.must_equal [:print_all]
+    end
+  end
 end

@@ -1,4 +1,5 @@
 require 'alki/settings'
+require 'alki/service_delegator'
 
 module Alki
   class Application
@@ -76,10 +77,14 @@ module Alki
     end
 
     def lookup(name)
-      *groups, service = name.split('.')
+      *groups, service = name.to_s.split('.')
       groups.inject(root) {|g,n|
         g[n.to_sym]
       }.send service
+    end
+
+    def delegate(path)
+      ServiceDelegator.new self, path
     end
 
     def respond_to_missing?(name,include_private = true)

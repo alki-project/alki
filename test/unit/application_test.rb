@@ -89,6 +89,19 @@ describe Alki::Application do
       @app.g1.g2.test_m.must_equal :test
     end
 
+    it 'should allow calling services of parent groups' do
+      @app.configure do
+        service(:test1) { :test1 }
+        group :g1 do
+          service(:test2) { :test2 }
+          group :g2 do
+            service(:test3) { [test1,test2] }
+          end
+        end
+      end
+      @app.g1.g2.test3.must_equal [:test1,:test2]
+    end
+
     it 'should allow aliasing groups' do
       @app.configure do
         group :g1 do

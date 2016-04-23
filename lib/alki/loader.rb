@@ -11,6 +11,13 @@ module Alki
       @root_dir = root_dir
     end
 
+    def load_all
+      Dir[File.join(@root_dir,'**','*.rb')].inject({}) do |h,path|
+        file = path.gsub(File.join(@root_dir,''),'').gsub(/\.rb$/,'')
+        h.merge!(file => Loader.load(path))
+      end
+    end
+
     def load(file)
       Loader.load File.expand_path("#{file}.rb",@root_dir)
     end

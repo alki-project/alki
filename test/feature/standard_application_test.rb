@@ -5,7 +5,7 @@ require 'alki/base'
 describe Alki::StandardApplication do
   describe 'example' do
     it 'should do fizzbuzz' do
-      app = Alki::StandardApplication.new(File.join(TestHelper.fixtures_path,'example'))
+      app = Alki::StandardApplication.new(File.join(fixtures_path,'example'))
       app.range_handler.handle 1..20
       app.output.to_a.must_equal [
                                      "1","2","Fizz!","4","Buzz!","Fizz!","7", "8", "Fizz!",

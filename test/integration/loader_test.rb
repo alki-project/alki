@@ -4,12 +4,12 @@ require 'alki/loader'
 
 describe Alki::Loader do
   before do
-    @config_path = TestHelper.fixture_path('config')
+    @config_path = fixture_path('config')
   end
 
   describe 'load' do
     before do
-      @loader = Alki::Loader.new TestHelper.fixtures_path
+      @loader = Alki::Loader.new fixtures_path
     end
 
     it 'should load config file from root directory' do

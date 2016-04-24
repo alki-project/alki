@@ -1,3 +1,6 @@
+wait = $wait || 0
+$wait =nil
 Alki do
-  :test
+  wait
 end
+sleep wait if wait > 0

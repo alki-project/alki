@@ -3,8 +3,6 @@ require 'alki/service_delegator'
 
 module Alki
   class Application
-    attr_reader :settings
-
     def configure(&blk)
       self.instance_exec(&blk)
     end
@@ -14,7 +12,7 @@ module Alki
         raise ArgumentError.new("Argument must be a settings object")
       end
       @group = root
-      @settings = settings
+      root.set :settings, settings
       @stack = [@group]
     end
 

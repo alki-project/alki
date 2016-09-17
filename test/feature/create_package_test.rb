@@ -1,11 +1,11 @@
 require_relative '../test_helper'
 
-require 'alki/base'
-
-describe Alki::StandardApplication do
+describe 'Alki.create_package!' do
   describe 'example' do
     it 'should do fizzbuzz' do
-      app = Alki::StandardApplication.new(File.join(fixtures_path,'example'))
+      $LOAD_PATH << File.join(fixtures_path,'example','lib')
+      require 'example'
+      app = Example.new
       app.range_handler.handle 1..20
       app.output.to_a.must_equal [
                                      "1","2","Fizz!","4","Buzz!","Fizz!","7", "8", "Fizz!",

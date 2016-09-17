@@ -9,7 +9,7 @@ describe Alki::Loader do
     end
 
     it 'should load config file from root directory' do
-      @loader.load(:config).call.must_equal :test
+      @loader.load(:config).call.must_equal 0
     end
   end
 

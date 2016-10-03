@@ -1,4 +1,5 @@
 require 'alki/service_delegator'
+require 'alki/overlay_delegator'
 
 module Alki
   class PackageExecutor
@@ -20,17 +21,35 @@ module Alki
     end
 
     def service(triple,path)
-      cache = triple[1]
+      pkg,cache,elem = triple
       unless cache[path]
         with_scope_context(triple) do |ctx,blk|
-          cache[path] = ctx.instance_exec(&blk)
+          cache[path] = apply_overlays triple,path, ctx.instance_exec(&blk)
         end
       end
       cache[path]
     end
 
+    def apply_overlays((pkg,cache,elem),path,obj)
+      elem[:overlays].inject(obj) do |obj,overlay_elem|
+        unless cache[overlay_elem[:block]]
+          with_scope_context([pkg,cache,overlay_elem]) do |ctx,blk|
+            cache[overlay_elem[:block]] = ctx.instance_exec(&blk)
+          end
+        end
+        local_path = path[overlay_elem[:scope][:root].size..-1].join('.')
+        Alki::OverlayDelegator.new local_path,obj, cache[overlay_elem[:block]]
+      end
+    end
+
     def factory(triple,path,*args,&blk)
-      service(triple,path).call *args, &blk
+      pkg,cache,elem = triple
+      unless cache[path]
+        with_scope_context(triple) do |ctx,blk|
+          cache[path] = ctx.instance_exec(&blk)
+        end
+      end
+      cache[path].call *args, &blk
     end
 
     def group((pkg,cache,elem))
@@ -70,7 +89,13 @@ module Alki
 
     class ServiceContext < Context
       def lookup(path)
-        root.lookup path
+        unless path.is_a?(String) or path.is_a?(Symbol)
+          raise ArgumentError.new("lookup can only take Strings or Symbols")
+        end
+        path.to_s.split('.').inject(self) do |group,name|
+          raise "Invalid lookup path" unless group.is_a? Context
+          group.send name.to_sym
+        end
       end
 
       def lazy(path)

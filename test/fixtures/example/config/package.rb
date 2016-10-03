@@ -22,6 +22,11 @@ Alki do
     ArrayOutput.new
   end
 
+  service :log do
+    require 'logger'
+    Logger.new STDERR
+  end
+
   service :message_proc do
     -> (msg) {
       msg[0].upcase+msg[1..-1].downcase+"!"

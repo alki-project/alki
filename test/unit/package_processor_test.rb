@@ -47,10 +47,6 @@ describe Alki::PackageProcessor do
     }
   end
 
-  def scope(pkg,path)
-    @pe.lookup(pkg,path)[:scope]
-  end
-
   describe :lookup do
     it 'should identify services and return their block and a scope' do
       pkg = {
@@ -98,6 +94,10 @@ describe Alki::PackageProcessor do
   end
 
   describe :lookup_scope do
+    def scope(pkg,path)
+      @pe.lookup(pkg,path)[:scope]
+    end
+
     it 'should contain a root item for the tree root' do
       pkg = {
           a: svc(:a)
@@ -218,5 +218,102 @@ describe Alki::PackageProcessor do
       }
       scope(pkg,[:b,:d,:e]).must_equal(root: [:b,:d], e: [:b,:d,:e], f: [:b,:d,:f])
     end
+  end
+
+  describe :lookup_overlays do
+    def overlays(pkg,path)
+      @pe.lookup(pkg,path)[:overlays].map{|o| o[:block]}
+    end
+
+    it 'should contain a root item for the tree root' do
+      pkg = {
+          a: svc(:a)
+      }
+      overlays(pkg,[:a]).must_equal([])
+    end
+
+    it 'should contain a root item for the tree root2' do
+      pkg = {
+          'overlays' => [:o1,:o2],
+          a: svc(:a)
+      }
+      overlays(pkg,[:a]).must_equal([:o1,:o2])
+    end
+
+    it 'should contain a root item for the tree root3' do
+      pkg = {
+          'overlays' => [:o1,:o2],
+          a: svc(:a),
+          b: group(
+              'overlays' => [:o3,:o4],
+              c: svc(:c)
+          )
+      }
+      overlays(pkg,[:b,:c]).must_equal([:o1,:o2,:o3,:o4])
+    end
+
+    it 'should contain a root item for the tree root4' do
+      pkg = {
+          'overlays' => [:o1],
+          a: svc(:a),
+          b: pkg(
+              'overlays' => [:o3,:o4],
+              c: svc(:c)
+          )
+      }
+      overlays(pkg,[:b,:c]).must_equal([:o1,:o3,:o4])
+    end
+
+    it 'should contain a root item for the tree root5' do
+      pkg2 = {
+          'overlays' => [:o3],
+          d: svc(:d),
+      }
+      pkg = {
+          'overlays' => [:o1],
+          a: svc(:a),
+          b: pkg(pkg2,
+              'overlays' => [:o2],
+              c: svc(:c)
+          )
+      }
+      overlays(pkg,[:b,:c]).must_equal([:o1,:o2,:o3])
+      overlays(pkg,[:b,:d]).must_equal([:o1,:o2,:o3])
+    end
+
+    it 'should contain a root item for the tree root6' do
+      pkg2 = {
+          'overlays' => [:o3],
+          d: svc(:d),
+      }
+      pkg = {
+          'overlays' => [:o1],
+          a: svc(:a),
+          b: pkg(pkg2,
+                 'overlays' => [:clear,:o2],
+                 c: svc(:c)
+          )
+      }
+      overlays(pkg,[:b,:c]).must_equal([:o2,:o3])
+      overlays(pkg,[:b,:d]).must_equal([:o2,:o3])
+    end
+
+    it 'should contain a root item for the tree root7' do
+      pkg2 = {
+          'overlays' => [:clear,:o3],
+          d: svc(:d),
+      }
+      pkg = {
+          'overlays' => [:o1],
+          a: svc(:a),
+          b: pkg(pkg2,
+                 'overlays' => [:o2],
+                 c: svc(:c)
+          )
+      }
+      overlays(pkg,[:b,:c]).must_equal([:o3])
+      overlays(pkg,[:b,:d]).must_equal([:o3])
+    end
+
   end
 end

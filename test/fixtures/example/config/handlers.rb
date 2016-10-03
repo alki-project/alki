@@ -18,4 +18,12 @@ Alki do
     require 'echo_handler'
     EchoHandler.new output
   end
+
+  overlay do
+    log_obj = log
+    -> (name,obj,method,*args,&blk) {
+      log_obj << "Calling #{name}##{method} #{args.join(", ")}\n"
+      obj.public_send method, *args, &blk
+    }
+  end
 end

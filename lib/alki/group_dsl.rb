@@ -9,7 +9,7 @@ module Alki
     end
 
     def dsl_methods
-      [:set,:service,:factory,:load,:import,:group]
+      [:set,:service,:factory,:load,:import,:group,:overlay,:clear_overlays]
     end
 
     def set(name,value=nil,&blk)
@@ -83,6 +83,16 @@ module Alki
         type: :group,
         children: children
       }
+    end
+
+    def overlay(&blk)
+      @root['overlays'] ||= []
+      @root['overlays'] << blk
+    end
+
+    def clear_overlays
+      @root['overlays'] ||= []
+      @root['overlays'] << :clear
     end
   end
 end

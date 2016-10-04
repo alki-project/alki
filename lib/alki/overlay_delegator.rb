@@ -24,7 +24,7 @@ module Alki
         res = @obj.send method, *args, &blk
       else
         Thread.current[@key] = true
-        res = @overlay.call @name, @obj, method, *args, &blk
+        res = @overlay.overlay_send @name, @obj, method, *args, &blk
         Thread.current[@key] = false
       end
       res

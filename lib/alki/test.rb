@@ -1,5 +1,6 @@
-require 'minitest/autorun'
+require 'bundler'
 Bundler.setup(:default,:test)
+require 'minitest/autorun'
 
 class Minitest::Spec
   def app_root

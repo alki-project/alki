@@ -22,6 +22,12 @@ module Alki
       super root
     end
 
-    Alki::Util.create_class(name,klass)
+    mod = Module.new
+    mod.const_set :Package, klass
+    mod.send :define_singleton_method, :new do
+      klass.new
+    end
+
+    Alki::Util.create_class(name,mod)
   end
 end

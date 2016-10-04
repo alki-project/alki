@@ -7,10 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "alki"
   spec.version       = Alki::VERSION
   spec.authors       = ["Matt Edlefsen"]
-  spec.email         = ["matt@xforty.com"]
+  spec.email         = ["matt.edlefsen@gmail.com"]
   spec.summary       = %q{Base library for building applications.}
   spec.description   = %q{Base library for building applications. Provides tools for organizing and connection application units.}
-  spec.homepage      = "https://gitlab.xforty.com/matt/base-alki"
+  spec.homepage      = "https://github.com/medlefsen/alki"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")

@@ -25,6 +25,6 @@ Alki do
 
   overlay do
     require 'log_overlay'
-    LogOverlay.new log
+    LogOverlay.new lazy('log')
   end
 end

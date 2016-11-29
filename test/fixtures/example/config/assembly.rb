@@ -22,9 +22,12 @@ Alki do
     ArrayOutput.new
   end
 
+  assembly :tlogger do
+    set :io, STDERR
+  end
+
   service :log do
-    require 'logger'
-    Logger.new STDERR
+    tlogger.log
   end
 
   service :message_proc do

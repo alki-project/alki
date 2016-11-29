@@ -1,9 +1,9 @@
 class SwitchHandler
   def initialize(handlers)
-    @handlers = handlers
+    @types = handlers
   end
 
   def handle(val)
-    @handlers.find {|h| h.handle val }
+    @types.find {|h| h.handle val }
   end
 end

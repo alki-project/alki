@@ -17,7 +17,6 @@ module Alki
       File.join app_root, 'test'
     end
 
-
     def fixtures_path
       File.join tests_root, 'fixtures'
     end

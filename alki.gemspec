@@ -9,10 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Matt Edlefsen"]
   spec.email         = ["matt.edlefsen@gmail.com"]
   spec.summary       = %q{Base library for building applications.}
-  spec.description   = %q{Base library for building applications. Provides tools for organizing and connection application units.}
-  spec.homepage      = "https://github.com/medlefsen/alki"
+  spec.description   = %q{Base library for building applications. Provides tools for organizing and connecting application units.}
+  spec.homepage      = "https://github.com/alki-project/alki"
   spec.license       = "MIT"
-
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.bindir        = 'exe'
@@ -21,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.6"
   spec.add_development_dependency "rake", '~> 10.0'
-  spec.add_development_dependency "minitest", "~> 5.9"
+  spec.add_dependency "minitest", "~> 5.9", '>= 5.9.1'
   spec.add_dependency "alki-dsl", "~> 0.2"
   spec.add_dependency "alki-support", "~> 0.4"
 end

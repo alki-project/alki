@@ -21,13 +21,13 @@ module Alki
       build_assembly blk if blk
       set_config_directory opts[:config_dir] if opts[:config_dir]
       set_assembly_name opts[:name] if opts[:name]
-      detect_from_path opts[:path] if opts[:path]
+      setup_project_assembly opts[:project_assembly] if opts[:project_assembly]
       load_assembly_file opts[:primary_config] unless definition
       build_empty_assembly unless definition
       build_class
     end
 
-    def detect_from_path(path)
+    def setup_project_assembly(path)
       root = Alki::Support.find_root(path) do |dir|
         File.exists?(File.join(dir,'config','assembly.rb')) ||
           File.exists?(File.join(dir,'Gemfile')) ||

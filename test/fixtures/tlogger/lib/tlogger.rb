@@ -1,3 +1,3 @@
 require 'alki'
 
-Alki.create_assembly!
+Alki.project_assembly!

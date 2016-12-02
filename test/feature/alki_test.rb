@@ -40,17 +40,17 @@ describe Alki do
       Object.send :remove_const, :AlkiTest
     end
 
-    it 'should automatically determine config_dir and name if path provided' do
+    it 'should automatically determine config_dir and name if project_assembly provided' do
       was_defined = defined? Tlogger
       Object.send :remove_const, :Tlogger if was_defined
-      klass = build(path: fixture_path('tlogger','lib','tlogger.rb'))
+      klass = build(project_assembly: fixture_path('tlogger','lib','tlogger.rb'))
       Tlogger.must_equal klass
       klass.new.must_respond_to :log
       Object.send :remove_const, :Tlogger unless was_defined
     end
   end
 
-  describe :create_assembly! do
+  describe :project_assembly! do
     it 'should automatically set path option using path of caller' do
       require fixture_path('tlogger','lib','tlogger.rb')
       Tlogger.new.must_respond_to :log

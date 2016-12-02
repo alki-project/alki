@@ -1,12 +1,16 @@
 require 'alki/assembly_builder'
 
 module Alki
-  def self.create_assembly!(opts={},&blk)
-    opts[:path] ||= caller_locations(1,1)[0].absolute_path
-    AssemblyBuilder.build(opts,&blk)
-  end
+  class << self
+    def project_assembly!(opts={},&blk)
+      opts[:project_assembly] ||= caller_locations(1,1)[0].absolute_path
+      AssemblyBuilder.build(opts,&blk)
+    end
 
-  def self.create_assembly(opts={},&blk)
-    AssemblyBuilder.build(opts,&blk)
+    alias_method :create_assembly!, :project_assembly!
+
+    def create_assembly(opts={},&blk)
+      AssemblyBuilder.build(opts,&blk)
+    end
   end
 end

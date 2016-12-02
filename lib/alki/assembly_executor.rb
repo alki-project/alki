@@ -49,13 +49,6 @@ module Alki
       res.elem[:block].call evaluator
     end
 
-    def service(res,path)
-      with_scope_context(res) do |ctx,blk|
-        svc = apply_overlays res, path, ctx.instance_exec(&blk)
-        -> { svc }
-      end
-    end
-
     def apply_overlays(res,path,obj)
       res.elem[:overlays].inject(obj) do |obj,overlay_elem|
         unless res.cache[overlay_elem[:block]]
@@ -65,15 +58,6 @@ module Alki
         end
         local_path = path[overlay_elem[:scope][:root].size..-1].join('.')
         Alki::OverlayDelegator.new local_path,obj, res.cache[overlay_elem[:block]]
-      end
-    end
-
-    def factory(res)
-      with_scope_context(res) do |ctx,blk|
-        factory = ctx.instance_exec(&blk)
-        -> (*args,&blk) {
-          factory.call *args, &blk
-        }
       end
     end
 

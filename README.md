@@ -9,7 +9,7 @@ It's goal is to remove uncertainty and friction when building Ruby projects, all
 Best place to start would be to check out some examples:
 
 * https://github.com/alki-project/alki-example
-* https://github.com/alki-project/alki/test/fixtures/example
+* https://github.com/alki-project/alki/tree/master/test/fixtures/example
 
 # The Alki Assembly
 

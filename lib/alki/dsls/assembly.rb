@@ -1,9 +1,9 @@
 Alki do
   require_dsl 'alki/dsls/class'
   require_dsl 'alki/dsls/assembly_types/group'
-  require_dsl 'alki/dsls/assembly_types/load'
-  require_dsl 'alki/dsls/assembly_types/service'
+  require_dsl 'alki/dsls/assembly_types/value'
   require_dsl 'alki/dsls/assembly_types/assembly'
+  require_dsl 'alki/dsls/assembly_types/load'
   require_dsl 'alki/dsls/assembly_types/overlay'
 
   init do

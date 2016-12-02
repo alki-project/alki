@@ -3,15 +3,15 @@ require 'alki/assembly_executor'
 module Alki
   module Assembly
     def new
-      Alki::Assembly::Instance.new assembly, load_path: config_root
+      Alki::Assembly::Instance.new assembly, self.assembly_options
     end
 
     def assembly
-      self.assembly_class.assembly
+      self.definition.assembly
     end
 
     def root
-      self.assembly_class.root
+      self.definition.root
     end
 
     class Instance

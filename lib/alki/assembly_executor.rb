@@ -1,5 +1,6 @@
 require 'alki/service_delegator'
 require 'alki/overlay_delegator'
+require 'alki/class_builder'
 
 module Alki
   class AssemblyExecutor
@@ -26,15 +27,26 @@ module Alki
         raise "Path not found: #{path.join('.')}" unless elem
         res = Resource.new assembly, cache, elem
         cache[path] = case elem[:type]
-          when :service
-            service res, path
-          when :factory
-            factory res, &blk
+          when :value
+            value res, path
           when :group
             group res
         end
       end
       cache[path].call *args, &blk
+    end
+
+    def value(res,path)
+      evaluator = -> (value_block,*args,&blk) {
+        with_scope_context(res,value_block) do |ctx|
+          val = ctx.__call__(*args,&blk)
+          if res.elem[:overlays]
+            val = apply_overlays res, path, val
+          end
+          val
+        end
+      }
+      res.elem[:block].call evaluator
     end
 
     def service(res,path)
@@ -47,8 +59,8 @@ module Alki
     def apply_overlays(res,path,obj)
       res.elem[:overlays].inject(obj) do |obj,overlay_elem|
         unless res.cache[overlay_elem[:block]]
-          with_scope_context(res.with_elem(overlay_elem)) do |ctx,blk|
-            res.cache[overlay_elem[:block]] = ctx.instance_exec(&blk)
+          with_scope_context(res.with_elem(overlay_elem)) do |ctx|
+            res.cache[overlay_elem[:block]] = ctx.__call__
           end
         end
         local_path = path[overlay_elem[:scope][:root].size..-1].join('.')
@@ -60,11 +72,7 @@ module Alki
       with_scope_context(res) do |ctx,blk|
         factory = ctx.instance_exec(&blk)
         -> (*args,&blk) {
-          if !args.empty? or blk
-            factory.call *args, &blk
-          else
-            factory
-          end
+          factory.call *args, &blk
         }
       end
     end
@@ -77,12 +85,19 @@ module Alki
       -> { group }
     end
 
-    def with_scope_context(res)
+    def with_scope_context(res,blk = nil)
       proc = -> (name,*args,&blk) {
         call res.pkg, res.cache, res.elem[:scope][name], *args, &blk
       }
 
-      yield ServiceContext.new(proc,res.elem[:scope].keys), res.elem[:block]
+      context_class = Alki::ClassBuilder.build(
+        super_class: ValueContext,
+        instance_methods: {
+          __call__: { body: (blk || res.elem[:block])}
+        }
+      )
+
+      yield context_class.new(proc, res.elem[:scope].keys)
     end
 
     class Context
@@ -104,7 +119,7 @@ module Alki
       end
     end
 
-    class ServiceContext < Context
+    class ValueContext < Context
       def lookup(path)
         unless path.is_a?(String) or path.is_a?(Symbol)
           raise ArgumentError.new("lookup can only take Strings or Symbols")

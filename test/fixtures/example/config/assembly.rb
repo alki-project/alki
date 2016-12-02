@@ -12,6 +12,10 @@ Alki do
                       ]
   end
 
+  func :run do |range|
+    range_handler.handle range
+  end
+
   service :range_handler do
     require 'range_handler'
     RangeHandler.new lazy('handler')
@@ -22,8 +26,15 @@ Alki do
     ArrayOutput.new
   end
 
+  service :log_io do
+    require 'stringio'
+    StringIO.new
+  end
+
   assembly :tlogger do
-    set :io, STDERR
+    set :io do
+      log_io
+    end
   end
 
   service :log do

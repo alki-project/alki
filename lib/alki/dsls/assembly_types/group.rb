@@ -12,7 +12,7 @@ Alki do
 
   element_type :group do
     attr :children, {}
-    attr :overlays
+    attr :overlays, []
 
     index do
       data[:scope] ||= {}

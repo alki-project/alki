@@ -13,12 +13,8 @@ Alki do
 
   finish do
     root = build_group(ctx[:elems], ctx[:overlays])
-    assembly = build_assembly root, nil
     add_class_method :root do
       root
-    end
-    add_class_method :assembly do
-      assembly
     end
   end
 end

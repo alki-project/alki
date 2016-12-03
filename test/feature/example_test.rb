@@ -42,4 +42,8 @@ describe 'Example' do
       end
     end
   end
+
+  it 'should have config_dir value' do
+    Example.new.config_dir.must_equal Alki::Test.fixture_path('example','config')
+  end
 end

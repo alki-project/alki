@@ -1,3 +1,4 @@
+require 'alki/dsl'
 require 'alki/assembly_builder'
 
 module Alki

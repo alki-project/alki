@@ -9,7 +9,6 @@ describe Alki do
 
     it 'should return module with ::assembly, ::root, and ::new methods' do
       klass = build
-      klass.must_respond_to :assembly
       klass.must_respond_to :root
       klass.must_respond_to :new
     end

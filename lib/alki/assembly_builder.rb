@@ -55,7 +55,7 @@ module Alki
     end
 
     def set_config_directory(config_dir)
-      Alki::Dsl.register_dir config_dir, 'alki/dsls/assembly'
+      Alki::Dsl.register_dir config_dir, 'alki/dsls/assembly', {config_dir: config_dir}
       @assembly_options[:load_path] = config_dir
     end
 

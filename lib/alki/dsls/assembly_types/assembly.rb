@@ -2,36 +2,44 @@ require 'alki/support'
 
 Alki do
   require_dsl 'alki/dsls/assembly_types/group'
+  require_dsl 'alki/dsls/assembly_types/value'
 
   dsl_method :assembly do |name,pkg=name.to_s,&blk|
     klass = Alki::Support.load_class pkg
-
-    elem = if blk
-      build_assembly klass.root, build_group_dsl(blk)
-    else
-      klass.root
+    config_dir = klass.assembly_options[:load_path]
+    config_dir = build_value config_dir if config_dir
+    overrides = if blk
+       build_group_dsl(blk)
     end
-    add name, elem
+
+    add_assembly name, klass.root, config_dir, overrides
   end
 
   element_type :assembly do
     attr :root
+    attr :config_dir
     attr :overrides, nil
 
     index do
-      if overrides
-        data.replace(
-          main: data.merge(main_data),
-          override: data.dup,
-        )
-        override.index data, key
+      if key == :config_dir
+        data.merge! main_data
+        config_dir
       else
-        root.index data.merge!(main_data), key
+        if overrides
+          data.replace(
+            main: data.merge(main_data),
+            override: data.dup,
+          )
+          override.index data, key
+        else
+          root.index data.merge!(main_data), key
+        end
       end
     end
 
     output do
       scope = root.output(data)[:scope]
+      scope[:config_dir] = (data[:prefix]||[]) + [:config_dir]
       scope.merge! overrides.output(data)[:scope] if overrides
       {
         type: :group,

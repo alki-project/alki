@@ -1,0 +1,242 @@
+Assembly DSL
+===========
+
+Building Assemblies is done via a DSL that makes putting together the pieces of your project easy.
+
+Groups
+------
+
+Groups are the basic way of organizing the elements of your Assembly. Creating elements at the top
+level of an Assembly will place them in a root group, but subgroups are easily created via the `group`
+command.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  group :sub_group do
+    set :val, "hello world"
+  end
+end
+puts assembly.new.sub_group.val
+```
+
+Scoping is also done by group, so that an element will be found by moving up parent groups until
+it is found.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  set :val, "one"
+  group :g1 do
+    set :val, "two"
+    group :g2 do
+      func :print do
+        puts val
+      end
+    end
+  end
+end
+assembly.new.g1.g2.print
+
+#output: two
+```
+
+=== Loading groups
+
+Groups can also be loaded from other config files via the `load` command.
+
+.config/settings.rb
+```ruby
+Alki do
+  set :val, "hello"
+end
+```
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly config_dir: 'config' do
+  load :settings
+  func :print do
+     puts settings.val
+  end
+end
+assembly.new.print
+
+# output: hello
+```
+
+
+Values
+------
+
+There are four types of elements loosely categorized as "values".
+
+### Basic Values (set)
+
+The simplest type of values are ones created via the `set` command. There are two forms of `set`.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  # This form takes the value as the second argument
+  set :val1, "hello"
+
+  # INVALID! Value may not be a reference to another element
+  # set :val2, val1
+
+  # This form takes the value as a block.
+  # Block is run once and result cached.
+  # Allows referencing other elements
+  set :val2 do
+    val1
+  end
+end
+puts assembly.new.val2
+
+#output: hello
+```
+
+### Functions (func)
+
+Simple callable values can be created with the `func` command. These can take arguments, are run
+each time they are referenced, and can access other elements.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  set :greeting, "Hello %s!"
+
+  func :greet do |name|
+    puts(greeting % [name])
+  end
+end
+puts assembly.new.greet "Matt"
+
+#output: Hello Matt!
+```
+
+### Services (service)
+
+Services are the key element Assemblies are typically made up of. Like the block form of `set`,
+`service` takes a name and block, which will be evaluated once on-demand and the result cached.
+One difference between the block form of `set` and `service` is that services are affected
+by overlays, whereas basic values are not.
+
+Commonly a service will require the file that defines a class, and then constructs an instance of
+that class.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  service :logger do
+    require 'logger'
+    Logger.new STDOUT
+  end
+end
+assembly.new.logger << "hello"
+
+#output: hello
+```
+
+### Factories (factory)
+
+Factories are a mix between services and funcs. Like services, they take a block which is evaluated
+once. Unlike services though, that block must return a callable object (like a Proc). This object
+is then called directly when the factory is referenced. This allows you to require files or construct
+a factory object once but still run code on every reference.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly do
+  factory :logger do
+    require 'logger'
+    -> (io) { Logger.new io }
+  end
+
+  service :main_logger do
+    logger STDOUT
+  end
+end
+assembly.new.main_logger << "hello"
+
+#output: hello
+```
+
+### Overlays (overlay)
+
+Overlays are a way to intercept and transform calls made to all services in a given group or it's
+sub-groups.
+
+Overlays are often most useful in groups where all services adhere to a common interface, and overlays
+can be used to perform aspect oriented programming like logging, validation, or access controls.
+
+
+### Assemblies (assembly)
+
+Other assemblies can be mounted into your Assembly using the `assembly` command.
+
+The first argument is what it should be named in your assembly. The optional second argument
+is the name of the assembly. This should be formatted like a require string (relative path but
+no `.rb`) and will default to the value of the first argument. If a classified version of that name
+can't be found, it will attempt to `require` it, and then try again.
+
+```ruby
+require 'alki'
+Alki.create_assembly name: 'other_assembly' do
+  set :val, "one"
+
+  set :invalid_val2 do
+    val2
+  end
+
+  set :root_val2 do
+    root.val2
+  end
+end
+
+Alki.create_assembly name: 'main_assembly' do
+  set :val2, "two"
+  assembly :other, 'other_assembly'
+end
+instance = MainAssembly.new
+puts instance.other.val
+#output: one
+
+# Can't access val2 in main assembly
+begin
+  puts instance.other.invalid_val2
+rescue => e
+  puts e
+end
+# output: undefined local variable or method 'val2'
+
+# This works, because root returns the root assembly
+puts instance.other.root_val2
+#output: two
+```
+
+In addition, `assembly` takes an optional third hash argument or a block which can be used to set
+overrides in the same way `::new` does for assemblies. Elements from the parent assembly are
+automatically in scope for overrides.
+
+```ruby
+require 'alki'
+Alki.create_assembly name: 'other_assembly' do
+  set :msg, nil
+  func :print do
+    puts msg
+  end
+end
+
+Alki.create_assembly name: 'main_assembly' do
+  set :val, "hello"
+  assembly :other, 'other_assembly' do
+    set :msg do
+      val
+    end
+  end
+end
+MainAssembly.new.other.print
+
+#output: hello
+```

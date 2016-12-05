@@ -1,0 +1,12 @@
+# What is Alki?
+
+Alki is a framework for creating projects that are modular, testable, and well organized.
+
+It's goal is to remove uncertainty and friction when building Ruby projects, allowing developers to focus on implementing business logic.
+
+# Synopsis
+
+Best place to start would be to check out some examples:
+
+* https://github.com/alki-project/alki-example
+* https://github.com/alki-project/alki/tree/master/test/fixtures/example

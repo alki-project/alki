@@ -12,7 +12,7 @@ Alki do
   end
 
   finish do
-    root = build_group(ctx[:elems], ctx[:overlays])
+    ctx[:root] = root = build_group(ctx.delete(:elems), ctx.delete(:overlays))
     add_class_method :root do
       root
     end

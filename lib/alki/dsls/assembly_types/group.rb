@@ -2,12 +2,7 @@ require 'alki/dsls/assembly'
 
 Alki do
   dsl_method :group do |name,&blk|
-    add name, build_group_dsl(blk)
-  end
-
-  helper :build_group_dsl do |blk|
-    data = Alki::Dsls::Assembly.build &blk
-    build_group data[:elems], data[:overlays]
+    add name, Alki::Dsls::Assembly.build(&blk)[:root]
   end
 
   element_type :group do

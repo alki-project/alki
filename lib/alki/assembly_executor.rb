@@ -111,7 +111,7 @@ module Alki
         unless path.is_a?(String) or path.is_a?(Symbol)
           raise ArgumentError.new("lazy can only take Strings or Symbols")
         end
-        Alki::ServiceDelegator.new pkg, path
+        Alki::ServiceDelegator.new assembly, path
       end
     end
 

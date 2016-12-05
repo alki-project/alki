@@ -1,16 +1,15 @@
+require 'alki/override_builder'
 require 'alki/support'
 
 Alki do
   require_dsl 'alki/dsls/assembly_types/group'
   require_dsl 'alki/dsls/assembly_types/value'
 
-  dsl_method :assembly do |name,pkg=name.to_s,&blk|
+  dsl_method :assembly do |name,pkg=name.to_s,**overrides,&blk|
     klass = Alki::Support.load_class pkg
     config_dir = klass.assembly_options[:load_path]
     config_dir = build_value config_dir if config_dir
-    overrides = if blk
-       build_group_dsl(blk)
-    end
+    overrides = Alki::OverrideBuilder.build overrides, &blk
 
     add_assembly name, klass.root, config_dir, overrides
   end

@@ -19,7 +19,14 @@ module Alki
 
     def build(opts={},&blk)
       build_assembly blk if blk
-      set_config_directory opts[:config_dir] if opts[:config_dir]
+      if opts[:config_dir]
+        context = if opts[:project_assembly]
+          File.dirname opts[:project_assembly]
+        else
+          Dir.pwd
+        end
+        set_config_directory File.expand_path opts[:config_dir], context
+      end
       set_assembly_name opts[:name] if opts[:name]
       setup_project_assembly opts[:project_assembly] if opts[:project_assembly]
       load_assembly_file opts[:primary_config] unless definition

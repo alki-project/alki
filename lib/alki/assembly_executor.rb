@@ -65,42 +65,35 @@ module Alki
       proc = -> (name,*args,&blk) {
         call res.pkg, res.cache, res.elem[:scope][name], *args, &blk
       }
-      group = GroupContext.new(proc,res.elem[:scope].keys)
+      group = create_context(GroupContext,res)
       -> { group }
     end
 
     def with_scope_context(res,blk = nil)
-      proc = -> (name,*args,&blk) {
-        call res.pkg, res.cache, res.elem[:scope][name], *args, &blk
+      methods = {
+        __call__: { body: (blk || res.elem[:block])}
       }
+      yield create_context(ValueContext,res,methods)
+    end
 
-      context_class = Alki::ClassBuilder.build(
-        super_class: ValueContext,
-        instance_methods: {
-          __call__: { body: (blk || res.elem[:block])}
+    def create_context(super_class,res,methods={})
+      executor = self
+
+      res.elem[:scope].keys.each do |meth|
+        methods[meth] = {
+          body: ->(*args,&blk) {
+            executor.call res.pkg, res.cache, res.elem[:scope][meth], *args, &blk
+          }
         }
+      end
+      context_class = Alki::ClassBuilder.build(
+        super_class: super_class,
+        instance_methods: methods
       )
-
-      yield context_class.new(proc, res.elem[:scope].keys)
+      context_class.new
     end
 
     class Context
-      def initialize(executor,scope)
-        @executor = executor
-        @scope = scope
-      end
-
-      def respond_to_missing?(name,include_all)
-        @scope.include? name
-      end
-
-      def method_missing(name,*args,&blk)
-        if @scope.include? name
-          @executor.call name, *args, &blk
-        else
-          super
-        end
-      end
     end
 
     class ValueContext < Context

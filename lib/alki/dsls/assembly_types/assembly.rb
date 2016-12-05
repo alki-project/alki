@@ -23,11 +23,13 @@ Alki do
       if key == :config_dir
         data.merge! main_data
         config_dir
+      elsif key == :original
+        root
       else
         if overrides
           data.replace(
             main: data.merge(main_data),
-            override: data.dup,
+            override: override_data,
           )
           override.index data, key
         else
@@ -39,6 +41,7 @@ Alki do
     output do
       scope = root.output(data)[:scope]
       scope[:config_dir] = (data[:prefix]||[]) + [:config_dir]
+      scope[:original] = (data[:prefix]||[]) + [:original]
       scope.merge! overrides.output(data)[:scope] if overrides
       {
         type: :group,
@@ -46,9 +49,16 @@ Alki do
       }
     end
 
+    def override_data
+      od = data.dup
+      od[:scope] ||= {}
+      od[:scope].merge! original: ((data[:prefix]||[]) + [:original])
+      od
+    end
+
     def main_data
-      pkg = data[:prefix] ? data[:prefix].dup : []
-      {scope: {pkg: pkg, root: []}, overlays: []}
+      assembly_path = data[:prefix] ? data[:prefix].dup : []
+      {scope: {assembly: assembly_path, root: []}, overlays: []}
     end
 
     def override

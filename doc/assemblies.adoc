@@ -1,10 +1,20 @@
 Assemblies
 ==========
 
+If a set of classes are your raw materials, an Assembly is the finished product,
+ready to be used.
+
+To get there, you provide Alki with your assembly definition, which acts as the instructions for
+how to piece together your classes and objects. Assemblies are made up of elements, which are groups
+of other elements, or various value types like services and factories.
+
+Assembly definitions are written in a simple DSL.
+
 Project Assemblies
 ------------------
 
-Most of the time, a project will have a single assembly. Alki makes doing this easy.
+Most of the time, a project will have a single assembly, so Alki makes have a single project wide
+assembly especially easy.
 
 First. in your project's `lib` directory create a ruby file for your assembly. If your assembly is
 to be called `MyAssembly`, create `lib/my_assembly.rb`. If it's namespaced but it in a subdirectory

@@ -13,12 +13,12 @@ Assembly definitions are written in a simple DSL.
 Project Assemblies
 ------------------
 
-Most of the time, a project will have a single assembly, so Alki makes have a single project wide
+Most of the time, a project will have a single assembly, so Alki makes having a single project wide
 assembly especially easy.
 
 First. in your project's `lib` directory create a ruby file for your assembly. If your assembly is
-to be called `MyAssembly`, create `lib/my_assembly.rb`. If it's namespaced but it in a subdirectory
-as usual, `MyModule::MyAssembly` would go in `lib/my_module/my_assembly.rb`
+to be called `MyAssembly`, create `lib/my_assembly.rb`. If it's namespaced put it in a subdirectory
+as usual (i.e. `MyModule::MyAssembly` would go in `lib/my_module/my_assembly.rb`).
 
 Your assembly file just needs two lines:
 
@@ -30,7 +30,8 @@ Alki.project_assembly!
 It will detect the project root and what class name it should create automatically.
 
 Second, a `config` directory must be created in the project root, and in that directory an `assembly.rb`
-file should be created. It should be a normal Alki loader block.
+file should be created. It should contain an `Alki do ... end` block which contains the top level
+definition for your Assembly.
 
 ```ruby
 Alki do
@@ -57,6 +58,7 @@ It should be called with a block that contains the assembly DSL. It will return 
 be used directly or assigned to a constant.
 
 ```ruby
+require 'alki'
 assembly = Alki.create_assembly do
   set :msg, "hello world"
   func :run do
@@ -90,7 +92,7 @@ assembly = Alki.create_assembly do
 end
 ```
 
-Once can use the logger service like so:
+One can use the logger service like so:
 
 ```ruby
 instance = assembly.new
@@ -101,12 +103,12 @@ instance.util.logger.info "test"
 
 ### Overrides
 
-Assembly overrides provide a way to do configure or customize an Assembly when
+Assembly overrides provide a way to configure or customize an Assembly when
 constructing an instance.
 
 For example, using the assembly created above, one might want to change the IO object logged to.
 
-The simplist way to do this is to provide a hash of values which will set values (as if the `set`
+The simplist way to do this is to provide a hash which will override values in the assembly (as if the `set`
 command was called in the DSL):
 
 ```ruby
@@ -123,6 +125,7 @@ The limitiation of this is that it can only override basic values. To override m
 a block can be given to `new` allowing the full assembly DSL.
 
 ```ruby
+require 'alki'
 class MyLogger
   def initialize(io)
     @io = io
@@ -144,5 +147,6 @@ instance.util.logger.info "test"
 # output: INFO test
 ```
 
-One thing of note is that elements from the assembly are accessibly via the `original` method.
-This can also be used to access the original versions of elements that have been overriden.
+One thing of note is that elements from the assembly are accessible in overrides via the `original`
+method, as seen above. This can also be used to access the original versions of elements that have
+been overriden.

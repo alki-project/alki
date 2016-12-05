@@ -18,24 +18,37 @@ assembly = Alki.create_assembly do
   end
 end
 puts assembly.new.sub_group.val
+
+#output: hello world
 ```
 
-Scoping is also done by group, so that an element will be found by moving up parent groups until
+Scoping is also done by group, so that an element will be found by searching through parent groups until
 it is found.
 
 ```ruby
 require 'alki'
 assembly = Alki.create_assembly do
   set :val, "one"
+  func :print do
+    puts val
+  end
+
   group :g1 do
     set :val, "two"
+
     group :g2 do
       func :print do
         puts val
       end
     end
+
   end
 end
+
+assembly.new.print
+
+#output: one
+
 assembly.new.g1.g2.print
 
 #output: two
@@ -52,6 +65,7 @@ Alki do
 end
 ```
 
+.main code
 ```ruby
 require 'alki'
 assembly = Alki.create_assembly config_dir: 'config' do
@@ -162,7 +176,7 @@ assembly.new.main_logger << "hello"
 #output: hello
 ```
 
-### Overlays (overlay)
+## Overlays (overlay)
 
 Overlays are a way to intercept and transform calls made to all services in a given group or it's
 sub-groups.
@@ -171,24 +185,29 @@ Overlays are often most useful in groups where all services adhere to a common i
 can be used to perform aspect oriented programming like logging, validation, or access controls.
 
 
-### Assemblies (assembly)
+## Assemblies (assembly)
 
 Other assemblies can be mounted into your Assembly using the `assembly` command.
 
-The first argument is what it should be named in your assembly. The optional second argument
-is the name of the assembly. This should be formatted like a require string (relative path but
+The first argument is what the element should be named in the parent assembly. The optional second argument
+is the name of the assembly to be mounted. This should be formatted like a require string (relative path but
 no `.rb`) and will default to the value of the first argument. If a classified version of that name
-can't be found, it will attempt to `require` it, and then try again.
+can't be found, Alki will attempt to `require` it, and then look for it again.
 
 ```ruby
 require 'alki'
+
+# Creates OtherAssembly
 Alki.create_assembly name: 'other_assembly' do
   set :val, "one"
 
+  # This is invalid as there is no such element as 'val2'
   set :invalid_val2 do
     val2
   end
 
+  # Normally, this would also be invalid, but if mounted
+  # in an assembly that has a 'val2' element, this works.
   set :root_val2 do
     root.val2
   end
@@ -196,13 +215,15 @@ end
 
 Alki.create_assembly name: 'main_assembly' do
   set :val2, "two"
+  # Mounts OtherAssembly as 'other'
   assembly :other, 'other_assembly'
 end
 instance = MainAssembly.new
 puts instance.other.val
 #output: one
 
-# Can't access val2 in main assembly
+# Even though val2 exists in MainAssembly, it is not directly accessibly to elements
+# within OtherAssembly
 begin
   puts instance.other.invalid_val2
 rescue => e
@@ -210,7 +231,7 @@ rescue => e
 end
 # output: undefined local variable or method 'val2'
 
-# This works, because root returns the root assembly
+# This works, because root returns the root assembly, which has a 'val2' element
 puts instance.other.root_val2
 #output: two
 ```

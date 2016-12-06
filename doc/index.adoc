@@ -1,5 +1,6 @@
 Alki
 ====
+:toc:
 
 Alki is a framework for creating projects that are modular, testable, and well organized.
 

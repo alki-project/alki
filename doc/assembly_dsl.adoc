@@ -1,5 +1,6 @@
 Assembly DSL
 ===========
+:toc:
 
 Building Assemblies is done via a DSL that makes putting together the pieces of your project easy.
 

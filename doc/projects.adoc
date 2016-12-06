@@ -1,5 +1,6 @@
 Setting up Alki Projects
 ========================
+:toc:
 
 Generally, projects that use alki work the same as normal Ruby projects but there are a couple of
 guidelines to make life easier.

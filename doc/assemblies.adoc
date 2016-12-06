@@ -1,5 +1,6 @@
 Assemblies
 ==========
+:toc:
 
 If a set of classes are your raw materials, an Assembly is the finished product,
 ready to be used.

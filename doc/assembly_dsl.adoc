@@ -1,11 +1,11 @@
 Assembly DSL
-===========
+============
 :toc:
 
 Building Assemblies is done via a DSL that makes putting together the pieces of your project easy.
 
-Groups
-------
+Groups (group)
+--------------
 
 Groups are the basic way of organizing the elements of your Assembly. Creating elements at the top
 level of an Assembly will place them in a root group, but subgroups are easily created via the `group`
@@ -55,7 +55,7 @@ assembly.new.g1.g2.print
 #output: two
 ```
 
-=== Loading groups
+=== Loading groups (load)
 
 Groups can also be loaded from other config files via the `load` command.
 
@@ -83,6 +83,85 @@ assembly.new.print
 
 Values
 ------
+
+Values are how you add functionality to your Assembly. There are different types of values, but they
+all share a number of common features.
+
+### On-Demand
+
+Values are only built when referenced, on demand. This means even if you have a very large assembly
+only the things you actually use in a given run will be created, or often even `require`-d. It also
+means that all values will automatically be built in the correct order to satisfy dependencies.
+
+### Scope
+
+When providing a block for a value, the block will be executed in a special context with some
+additional helper methods.
+
+The most important methods available are other elements that are "in scope". For example, a value can
+reference a sibling element in the same group, or any value in any ancestor group. The order that
+elements are defined does not effect what is in scope. All other elements are out of scope, but can
+usually still be referenced by finding an ancestor group that 'is' in scope, and then drilling down
+from there.
+
+```ruby
+require 'alki'
+assembly = Alki.create_assembly config_dir: 'config' do
+  set :val1, "1"
+  group :main do
+    group :sub_group do
+      set :val2, "2"
+    end
+
+    set :values do
+      [
+        val1, # OK
+      # val2, # ERROR
+        sub_group.val2, # OK
+        val3, # OK
+      # val4, # ERROR
+        other_group.val4, #OK
+      ].join('')
+    end
+
+    set :val3, "3"
+  end
+
+  group :other_group do
+    set :val4, "4"
+  end
+
+end
+puts assembly.new.main.values
+
+#output: 1234
+```
+
+### Helpers
+
+In addition to elements in scope, there are some helper methods that are always available in value
+blocks.
+
+[horizontal]
+
+assembly:: This will return the root group of the assembly the element is defined in.
+
+root:: This will return the root group of the 'top most' assembly being run. If only a single
+assembly is being run, this will be the same as `assembly` but if the element being run is in
+an assembly that has been mounted into another assembly, they will differ.
+
+lookup(path):: This can be used to reference an element by a string path (using periods (`.`) to
+drill down into groups). If called directly it will lookup using the local scope. It is also available
+as a method on all groups, so `assembly.lookup(path)` would lookup an element starting from the root
+of the assembly.
+
+lazy(path):: This works the same as `lookup`, but with an important difference: Instead of doing the
+lookup immediately, it will instead return a "proxy" object, which will do the lookup the first time
+a method is called on the proxy object, and then delegate all method calls to the actual element. This
+can be used to handle circular references in services.
+
+Value Types
+-----------
 
 There are four types of elements loosely categorized as "values".
 

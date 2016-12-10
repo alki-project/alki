@@ -58,7 +58,7 @@ Alki do
 
     def main_data
       assembly_path = data[:prefix] ? data[:prefix].dup : []
-      {scope: {assembly: assembly_path, root: []}, overlays: []}
+      {scope: {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}, overlays: []}
     end
 
     def override

@@ -1,5 +1,4 @@
-require 'bundler'
-Bundler.setup(:default,:test)
+Bundler.require(:test)
 require 'minitest/autorun'
 require 'alki/dsl'
 
@@ -41,8 +40,8 @@ unless $LOAD_PATH.include? Alki::Test.lib_dir
   $LOAD_PATH.unshift Alki::Test.lib_dir
 end
 
-test_helper_dir = File.join(Alki::Test.tests_root,'test_helper.rb')
+test_helper = File.join(Alki::Test.tests_root,'test_helper.rb')
 
-if File.exists? test_helper_dir
-  require test_helper_dir
+if File.exists? test_helper
+  require test_helper
 end

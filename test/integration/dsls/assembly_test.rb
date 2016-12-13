@@ -1,4 +1,4 @@
-require_relative '../../test_helper'
+require 'alki/test'
 require 'alki/dsls/assembly'
 
 describe Alki::Dsls::Assembly do

@@ -1,6 +1,4 @@
-require 'bundler/setup'
-require 'alki/test'
-require 'alki'
+require 'alki/feature_test'
 
 describe 'Factories' do
   def assembly(&blk)

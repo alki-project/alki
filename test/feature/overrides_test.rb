@@ -1,6 +1,5 @@
-require_relative '../test_helper'
+require 'alki/feature_test'
 require 'logger'
-require 'alki'
 require 'stringio'
 
 describe 'Overrides' do

@@ -1,5 +1,4 @@
-require_relative '../test_helper'
-require 'alki'
+require 'alki/feature_test'
 
 describe Alki do
   describe :create_assembly do

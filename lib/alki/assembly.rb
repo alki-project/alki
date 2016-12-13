@@ -1,4 +1,4 @@
-require 'alki/assembly_executor'
+require 'alki/executor'
 require 'alki/override_builder'
 require 'alki/dsls/assembly'
 
@@ -26,13 +26,11 @@ module Alki
 
     class Instance
       def initialize(assembly,opts)
-        @assembly = assembly
-        @cache = {}
-        @opts = opts
+        @executor = Alki::Executor.new assembly, opts
       end
 
       def root
-        @root ||= __executor__.call @assembly, @cache, []
+        @root ||= @executor.call []
       end
 
       def respond_to_missing?(name,include_all)
@@ -41,12 +39,6 @@ module Alki
 
       def method_missing(name,*args,&blk)
         root.send name, *args, &blk
-      end
-
-      private
-
-      def __executor__
-        @executor ||= Alki::AssemblyExecutor.new @opts
       end
     end
   end

@@ -3,8 +3,8 @@ class LogOverlay
     @log = log
   end
 
-  def overlay_send(name,obj,method,*args,&blk)
-    @log << "Calling #{name}##{method} #{args.join(", ")}\n"
+  def overlay_send(obj,info,method,*args,&blk)
+    @log << "Calling #{info[:name]}##{method} #{args.join(", ")}\n"
     obj.public_send method, *args, &blk
   end
 end

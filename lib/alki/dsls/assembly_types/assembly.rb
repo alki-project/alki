@@ -39,14 +39,11 @@ Alki do
     end
 
     output do
-      scope = root.output(data)[:scope]
-      scope[:config_dir] = (data[:prefix]||[]) + [:config_dir]
-      scope[:original] = (data[:prefix]||[]) + [:original]
-      scope.merge! overrides.output(data)[:scope] if overrides
-      {
-        type: :group,
-        scope: scope,
-      }
+      output = root.output(data)
+      output[:scope][:config_dir] = (data[:prefix]||[]) + [:config_dir]
+      output[:scope][:original] = (data[:prefix]||[]) + [:original]
+      output[:scope].merge! overrides.output(data)[:scope] if overrides
+      output
     end
 
     def override_data
@@ -58,7 +55,7 @@ Alki do
 
     def main_data
       assembly_path = data[:prefix] ? data[:prefix].dup : []
-      {scope: {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}, overlays: []}
+      {scope: {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}, overlays: {}}
     end
 
     def override
@@ -76,7 +73,13 @@ Alki do
 
       if main_child && override_child
         (data[:main][:scope]||={}).merge! (data[:override][:scope]||{})
-        (data[:main][:overlays]||=[]).push *(data[:override][:overlays]||[])
+        data[:main][:overlays]||={}
+        if data[:override][:overlays]
+          data[:override][:overlays].each do |target,overlays|
+            (data[:main][:overlays][target]||=[]).push *overlays
+          end
+        end
+        data[:override][:overlays]=data[:main][:overlays].dup
         Alki::AssemblyTypes::Override.new main_child, override_child
       elsif main_child
         data.replace data[:main]

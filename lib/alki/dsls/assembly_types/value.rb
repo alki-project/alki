@@ -1,3 +1,5 @@
+require 'alki/execution/value_context'
+
 Alki do
   dsl_method :set do |name,value=nil,&blk|
     if blk
@@ -24,12 +26,7 @@ Alki do
 
     output do
       {
-        type: :value,
-        block: ->(_) {
-          val = value
-          ->{ val }
-        },
-        scope: {}
+        value: value
       }
     end
   end
@@ -39,11 +36,13 @@ Alki do
 
     output do
       {
-        type: :value,
-        block: ->(e) {
-          val = e.call proc
-          ->{ val }
+        build: {
+          methods: {
+            __build__: proc
+          },
+          proc: ->(desc) {desc[:value] = __build__}
         },
+        modules: [Alki::Execution::ValueContext],
         scope: data[:scope]
       }
     end
@@ -51,17 +50,30 @@ Alki do
 
   element_type :service do
     attr :block
+
     output do
-      last_clear = data[:overlays].rindex(:clear)
-      overlays = last_clear ? data[:overlays][(last_clear + 1)..-1] : data[:overlays]
+      overlays = data[:overlays][[]]||[]
       {
-        type: :value,
-        block: -> (evaluator) {
-          svc = evaluator.call block
-          -> { svc }
+        build: {
+          methods: {
+            __build__: block
+          },
+          proc: -> (elem) {
+            elem[:value] = overlays.inject(__build__) do |val,info|
+              overlay = root.lookup(*info.from).lookup(*info.path)
+              if !overlay.respond_to?(:call) && overlay.respond_to?(:new)
+                overlay = overlay.method(:new)
+              end
+              if info.arg
+                overlay.call val, info.arg
+              else
+                overlay.call val
+              end
+            end
+          },
         },
+        modules: [Alki::Execution::ValueContext],
         scope: data[:scope],
-        overlays: overlays
       }
     end
   end
@@ -70,14 +82,25 @@ Alki do
     attr :block
     output do
       {
-        type: :value,
-        block: -> (evaluator) {
-          factory = evaluator.call block
-          -> (*args,&blk) {
-            factory.call *args, &blk
+        modules: [Alki::Execution::ValueContext],
+        scope: data[:scope],
+        build: {
+          methods: {
+            __build__: block
+          },
+          proc: ->(desc) {
+            desc[:methods] = {
+              __create__: __build__
+            }
+            desc[:proc] = ->(*args,&blk) {
+              if !args.empty? || blk
+                __create__ *args, &blk
+              else
+                method(:__create__)
+              end
+            }
           }
-        },
-        scope: data[:scope]
+        }
       }
     end
   end
@@ -86,14 +109,9 @@ Alki do
     attr :block
     output do
       {
-        type: :value,
-        block: ->(evaluator) {
-          value_blk = block
-          -> (*args,&blk) {
-            evaluator.call(value_blk,*args,&blk)
-          }
-        },
-        scope: data[:scope]
+        modules: [Alki::Execution::ValueContext],
+        scope: data[:scope],
+        proc: block
       }
     end
   end

@@ -1,4 +1,5 @@
 require 'alki/dsls/assembly'
+require 'alki/execution/context'
 
 Alki do
   dsl_method :group do |name,&blk|
@@ -6,28 +7,42 @@ Alki do
   end
 
   element_type :group do
+    OverlayInfo = Struct.new(:path,:from,:arg)
     attr :children, {}
-    attr :overlays, []
+    attr :overlays, {}
 
     index do
       data[:scope] ||= {}
       data[:prefix] ||= []
       update_scope children, data[:prefix], data[:scope]
-      data[:prefix] << key
 
+      data[:overlays]||={}
       if overlays
-        data[:overlays] = overlays.map do |o|
-          o == :clear ? o : {block: o, scope: data[:scope].merge(root: [])}
+        overlays.each do |target,overlays|
+          (data[:overlays][target]||=[]).push *overlays.map {|(path,arg)|
+            OverlayInfo.new(path,data[:prefix].dup,arg)
+          }
         end
       end
+
+      data[:overlays] = data[:overlays].inject({}) do |no,(target,overlays)|
+        target = target.dup
+        if target.empty? || target.shift == key.to_s
+          (no[target]||=[]).push *overlays
+        end
+        no
+      end
+
+      data[:prefix] << key
 
       children[key]
     end
 
     output do
       {
-        type: :group,
-        scope: update_scope(children,data[:prefix]||[],{})
+        scope: update_scope(children,data[:prefix]||[],{}),
+        modules: [Alki::Execution::Context],
+        proc: ->{self}
       }
     end
 

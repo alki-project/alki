@@ -2,7 +2,7 @@ Alki do
   factory :num_handler do
     require 'num_handler'
     -> (num,str) {
-      NumHandler.new num, str, output
+      NumHandler.new(num, str, output)
     }
   end
 
@@ -21,10 +21,5 @@ Alki do
   service :echo do
     require 'echo_handler'
     EchoHandler.new output
-  end
-
-  overlay do
-    require 'log_overlay'
-    LogOverlay.new lookup('log')
   end
 end

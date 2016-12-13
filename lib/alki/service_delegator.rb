@@ -2,13 +2,13 @@ require 'delegate'
 
 module Alki
   class ServiceDelegator < Delegator
-    def initialize(app,path)
-      @app = app
+    def initialize(elem,path)
+      @elem = elem
       @path = path
     end
 
     def __getobj__
-      @obj ||= @app.lookup(@path)
+      @obj ||= @elem.lookup(@path)
     end
   end
 end

@@ -8,7 +8,7 @@ Alki do
 
   init do
     ctx[:elems] = {}
-    ctx[:overlays] = []
+    ctx[:overlays] = {}
   end
 
   finish do

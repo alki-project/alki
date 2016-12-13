@@ -2,6 +2,15 @@ Alki do
   load :settings
   load :handlers
 
+  factory :log_overlay do
+    require 'log_overlay'
+    -> (obj) {
+      delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
+    }
+  end
+
+  overlay :handlers, :log_overlay
+
   service :handler do
     require 'switch_handler'
     SwitchHandler.new [

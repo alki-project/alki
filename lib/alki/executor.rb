@@ -37,7 +37,7 @@ module Alki
     private
 
     def process_action(action)
-      if action[:value]
+      if action.key?(:value)
         [:value,action[:value]]
       elsif action[:proc]
         if action[:scope]
@@ -45,7 +45,7 @@ module Alki
         else
           [:proc,action[:proc]]
         end
-      end
+      end or raise "Invalid action"
     end
 
     def call_value(type,value,meta,args=[],blk=nil)

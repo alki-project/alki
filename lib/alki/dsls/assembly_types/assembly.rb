@@ -40,6 +40,7 @@ Alki do
 
     output do
       output = root.output(data)
+      add_parent_path output[:scope]
       output[:scope][:config_dir] = (data[:prefix]||[]) + [:config_dir]
       output[:scope][:original] = (data[:prefix]||[]) + [:original]
       output[:scope].merge! overrides.output(data)[:scope] if overrides
@@ -55,7 +56,14 @@ Alki do
 
     def main_data
       assembly_path = data[:prefix] ? data[:prefix].dup : []
-      {scope: {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}, overlays: {}}
+      scope = {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}
+      add_parent_path scope
+      {scope: scope, overlays: {}}
+    end
+
+    def add_parent_path(scope)
+      parent_path = (data[:scope]||{})[:assembly]||nil
+      scope[:parent] = parent_path if parent_path
     end
 
     def override

@@ -2,7 +2,7 @@ require 'alki/test'
 require 'alki/dsls/assembly'
 
 describe Alki::Dsls::Assembly do
-  it 'should work' do
+  it 'should allow creating Assembly config classes' do
     res = Alki::Dsls::Assembly.build do
       service :test do
         :val

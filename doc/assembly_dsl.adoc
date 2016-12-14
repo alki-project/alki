@@ -227,7 +227,7 @@ assembly = Alki.create_assembly do
     Logger.new STDOUT
   end
 end
-assembly.new.logger << "hello"
+assembly.new.logger << "hello\n"
 
 #output: hello
 ```
@@ -251,7 +251,7 @@ assembly = Alki.create_assembly do
     logger STDOUT
   end
 end
-assembly.new.main_logger << "hello"
+assembly.new.main_logger << "hello\n"
 
 #output: hello
 ```

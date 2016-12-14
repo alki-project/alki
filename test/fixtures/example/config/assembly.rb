@@ -40,7 +40,7 @@ Alki do
     StringIO.new
   end
 
-  assembly :tlogger do
+  mount :tlogger do
     set :io do
       log_io
     end

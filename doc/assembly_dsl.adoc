@@ -265,9 +265,9 @@ Overlays are often most useful in groups where all services adhere to a common i
 can be used to perform aspect oriented programming like logging, validation, or access controls.
 
 
-## Assemblies (assembly)
+## Mounting Assemblies (mount)
 
-Other assemblies can be mounted into your Assembly using the `assembly` command.
+Other assemblies can be mounted into your Assembly using the `mount` command.
 
 The first argument is what the element should be named in the parent assembly. The optional second argument
 is the name of the assembly to be mounted. This should be formatted like a require string (relative path but
@@ -296,7 +296,7 @@ end
 Alki.create_assembly name: 'main_assembly' do
   set :val2, "two"
   # Mounts OtherAssembly as 'other'
-  assembly :other, 'other_assembly'
+  mount :other, 'other_assembly'
 end
 instance = MainAssembly.new
 puts instance.other.val
@@ -331,7 +331,7 @@ end
 
 Alki.create_assembly name: 'main_assembly' do
   set :val, "hello"
-  assembly :other, 'other_assembly' do
+  mount :other, 'other_assembly' do
     set :msg do
       val
     end

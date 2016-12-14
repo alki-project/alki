@@ -21,7 +21,7 @@ module Alki
         nil
       end
 
-      Alki::Support.load_class("alki/assembly_types/assembly").new root, config_dir, OverrideBuilder.build(overrides,&blk)
+      Alki::Support.load_class("alki/assembly_types/mount").new root, config_dir, OverrideBuilder.build(overrides,&blk)
     end
 
     class Instance

@@ -19,11 +19,11 @@ describe 'Pseudo Elements' do
       end
     end
     one = Alki.create_assembly do
-      assembly :two, two
+      mount :two, two
       set :num, 1
     end
     zero = Alki.create_assembly(config_dir: @config_dir) do
-      assembly :one, one
+      mount :one, one
       set :num, 0
       set :has_parent do
         respond_to?(:parent)

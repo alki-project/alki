@@ -246,7 +246,7 @@ if options[:console]
   fw.add_line "Gemfile", "gem 'alki-console'", match: /^gem ['"]alki-console['"]/
 
   name = options[:console].is_a?(String) ? options[:console] : project_name.tr('/','-')
-  fw.add_line primary_config_path, "  assembly :console, 'alki/console', name: '#{name}'", match: /^\s*assembly :console/, after: 'Alki do'
+  fw.add_line primary_config_path, "  mount :console, 'alki/console', name: '#{name}'", match: /^\s*assembly :console/, after: 'Alki do'
 
   fw.create_exec 'bin/console', <<END
 #!/usr/bin/env ruby

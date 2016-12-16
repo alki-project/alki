@@ -3,19 +3,30 @@ require 'fileutils'
 require 'optparse'
 require 'alki/support'
 
+valid_addons = ["console"]
+
 options = {
   config_dir: nil,
   primary_config: nil,
-  console: false
+  addons: [],
+  project_dir: Dir.pwd,
 }
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: alki init PROJECT_NAME [options]"
 
-  opts.on("-c", "--console[=NAME]", "Add Console") do |v|
-    options[:console] = v||true
+  opts.on("-a", "--add[=ADDON]", "Add addon to project. Valid addons: #{valid_addons.join(', ')}") do |v|
+    unless valid_addons.include? v
+      puts "Invalid addon: #{v}"
+      exit 1
+    end
+    options[:addon] |= [v]
   end
 
-  opts.on("-d", "--config_dir=DIECTORY", "Override config dir (default \"config\")") do |v|
+  opts.on('-d','--directory=DIRECTORY', 'Project root, defaults to the current working directory') do |v|
+    options[:project_dir] = v
+  end
+
+  opts.on("-c", "--config=DIECTORY", "Override config dir (default \"config\")") do |v|
     options[:config_dir] = v
   end
 
@@ -39,8 +50,8 @@ end
 
 
 class AlkiFileWriter
-  def initialize
-    @root_dir = Dir.pwd
+  def initialize(root_dir)
+    @root_dir = root_dir
     @changes = []
     @triggers = []
   end
@@ -54,7 +65,7 @@ class AlkiFileWriter
   end
 
   def check_create(file:, contents:, opts:)
-    path = File.join(@root_dir, file)
+    path = abs_path( file)
     if File.exists? path
       if File.read(path) == contents
         :skip
@@ -63,7 +74,7 @@ class AlkiFileWriter
   end
 
   def desc_create(file:, contents:, opts: {})
-    path = File.join(@root_dir, file)
+    path = abs_path( file)
     if opts[:exec]
       adj = "executable "
     end
@@ -75,7 +86,7 @@ class AlkiFileWriter
   end
 
   def do_create(file:, contents:, opts: {})
-    path = File.join(@root_dir, file)
+    path = abs_path( file)
     FileUtils.mkdir_p File.dirname(path)
     File.write path, contents
     FileUtils.chmod '+x', path if opts[:exec]
@@ -86,7 +97,7 @@ class AlkiFileWriter
   end
 
   def check_opt_create(file:, contents:)
-    if File.exists? File.join(@root_dir, file)
+    if File.exists? abs_path( file)
       :skip
     end
   end
@@ -104,7 +115,7 @@ class AlkiFileWriter
   end
 
   def check_add_line(file:,line:,opts:)
-    if File.exists? File.join(@root_dir,file)
+    if File.exists? abs_path(file)
       File.open(file) do |f|
         if opts[:after]
           found = until f.eof?
@@ -208,11 +219,15 @@ class AlkiFileWriter
     end
     puts "Done"
   end
+
+  def abs_path(p)
+    File.expand_path(p,@root_dir)
+  end
 end
 
 project_name = ARGV[1]
 
-fw = AlkiFileWriter.new
+fw = AlkiFileWriter.new config[:project_dir]
 
 config_dir = options[:config_dir] || 'config'
 primary_config = options[:primary_config] || 'assembly'
@@ -242,10 +257,10 @@ fw.trigger 'Gemfile', 'bundle install'
 
 fw.add_line "Gemfile", "gem 'alki'", match: /^gem ['"]alki['"]/
 
-if options[:console]
+if options[:addons].include? "console"
   fw.add_line "Gemfile", "gem 'alki-console'", match: /^gem ['"]alki-console['"]/
 
-  name = options[:console].is_a?(String) ? options[:console] : project_name.tr('/','-')
+  name = project_name.tr('/','-')
   fw.add_line primary_config_path, "  mount :console, 'alki/console', name: '#{name}'", match: /^\s*assembly :console/, after: 'Alki do'
 
   fw.create_exec 'bin/console', <<END

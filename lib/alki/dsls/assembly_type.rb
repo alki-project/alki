@@ -22,9 +22,9 @@ Alki do
     class_builder('Handler')[:module] = class_builder[:module]
   end
 
-  dsl_method :attr do |name,default=nil|
+  dsl_method :attr do |name,&default|
     add_delegator name, :@elem, subclass: 'Handler'
-    add_initialize_param name, default
+    add_initialize_param name, &default
     add_accessor name
   end
 

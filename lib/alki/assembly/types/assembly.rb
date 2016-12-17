@@ -2,60 +2,88 @@ require 'alki/assembly/types/override'
 
 Alki do
   attr :root
-  attr :overrides, nil
+  attr(:overrides) { nil }
 
   index do
+    data[:scope] ||= {}
+    data[:prefix] ||= []
+    data[:overlays] ||= {}
+
     if key == :original
-      data.merge!(main_data)
+      update_main data
+      if overrides
+        overrides.children.keys.each do |k|
+          data[:scope][k] = data[:prefix] + [k]
+        end
+      end
       root
     else
       if overrides
         data.replace(
-          main: data.merge(main_data),
-          override: override_data,
+          main: deep_copy(data),
+          override: data.dup,
         )
+        update_main data[:main]
+        update_override data[:override]
         override.index data, key
       else
-        root.index data.merge!(main_data), key
+        update_main data
+        root.index data, key
       end
     end
   end
 
   output do
+    data[:scope] ||= {}
+    data[:prefix] ||= []
+    data[:overlays] ||= {}
+
     output = root.output(data)
-    update_scope output[:scope]
-    update_scope output[:full_scope]
+    add_parent_path output[:scope]
+    update_scope data, output[:full_scope]
     output[:scope].merge! overrides.output(data)[:scope] if overrides
     output[:full_scope].merge! overrides.output(data)[:full_scope] if overrides
     output
   end
 
-  def override_data
-    od = data.dup
-    od[:scope] ||= {}
-    add_original od[:scope]
-    od
+  def deep_copy(val)
+    if val.is_a?(Hash)
+      val.inject({}) do |h,(k,v)|
+        h[k] = deep_copy v
+        h
+      end
+    elsif val.is_a?(Array)
+      val.inject([]) do |a,v|
+        a.push deep_copy v
+      end
+    else
+      val
+    end
   end
 
-  def main_data
-    assembly_path = data[:prefix] ? data[:prefix].dup : []
-    nd = {scope: {assembly: assembly_path, root: []}}
-    update_scope nd[:scope]
-    nd
+  def update_main(data)
+    data[:scope] = {assembly: data[:scope][:assembly], root: []}
+    update_scope data
+    data[:scope][:assembly] = data[:prefix].dup
   end
 
-  def update_scope(scope)
-    add_parent_path scope
-    add_original scope
+  def update_override(data)
+    data[:scope][:root] ||= []
+    add_original data[:scope], data
   end
 
-  def add_parent_path(scope)
-    parent_path = (data[:scope]||{})[:assembly]||nil
+  def update_scope(data,scope=data[:scope])
+    add_parent_path scope, data
+    add_original scope, data
+  end
+
+  def add_parent_path(scope,data=self.data)
+    parent_path = data[:scope][:assembly]||nil
     scope[:parent] = parent_path if parent_path
   end
 
-  def add_original(scope)
-    scope[:original] = ((data[:prefix]||[]) + [:original])
+  def add_original(scope,data=self.data)
+    scope[:original] = data[:prefix] + [:original]
   end
 
   def override

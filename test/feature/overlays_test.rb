@@ -29,6 +29,23 @@ describe 'Overlays' do
     assembly.new.svc.val.must_equal :test
   end
 
+  it 'should allow using factories as overlays' do
+    values = []
+    assembly = Alki.create_assembly do
+      service :svc do
+        :test
+      end
+
+      overlay :svc, :test_overlay
+
+      factory :test_overlay do
+        ->(value) {values << value; :transformed}
+      end
+    end
+    assembly.new.svc.must_equal :transformed
+    values.must_equal [:test]
+  end
+
   it 'should allow setting an overlay on groups of services' do
     values = []
     assembly = Alki.create_assembly do
@@ -189,5 +206,20 @@ describe 'Overlays' do
     end
     obj.svc2.must_equal :child
     obj.mounted.svc1.must_equal :parent
+  end
+
+  it 'should allow setting overlays on assembly_instance' do
+    values = []
+    assembly = Alki.create_assembly do
+      overlay :assembly_instance, :test_overlay
+
+      set :test_overlay, ->(value) {
+        values << value
+        :transformed
+      }
+    end
+    assembly.new.must_equal :transformed
+    values.size.must_equal 1
+    values[0].must_be_instance_of Alki::Assembly::Instance
   end
 end

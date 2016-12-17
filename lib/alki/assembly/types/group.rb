@@ -1,14 +1,10 @@
 Alki do
   require 'alki/execution/context'
 
-  attr :children, {}
+  attr(:children){ {} }
 
   index do
-    data[:scope] ||= {}
-    data[:prefix] ||= []
     update_scope children, data[:prefix], data[:scope]
-
-    data[:overlays]||={}
 
     data[:overlays] = data[:overlays].inject({}) do |no,(target,overlays)|
       target = target.dup

@@ -68,7 +68,9 @@ module Alki
       end
 
       def register_config_directory
-        Alki::Dsl.register_dir @config_dir, 'alki/dsls/assembly', {config_dir: @config_dir}
+        opts = {config_dir: @config_dir}
+        opts[:prefix] = File.join(@assembly_name,'alki_config') if @assembly_name
+        Alki::Dsl.register_dir @config_dir, 'alki/dsls/assembly', opts
       end
 
       def load_assembly_file(name = nil)

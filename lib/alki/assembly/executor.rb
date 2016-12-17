@@ -67,20 +67,23 @@ module Alki
 
       def lookup(path)
         process_overlays
-        @lookup_cache[path] ||= begin
-          data = @data.dup
-          elem = @assembly
-          path.each do |key|
-            elem = elem.index data, key
-            return nil unless elem
-          end
-          elem.output data
-        end.tap do |elem|
+        @lookup_cache[path] ||= lookup_elem(path).tap do |elem|
           unless elem
             raise InvalidPathError.new("Invalid path #{path.inspect}")
           end
         end
       end
+
+      def lookup_elem(path)
+        data = @data.dup
+        elem = @assembly
+        path.each do |key|
+          elem = elem.index data, key
+          return nil unless elem
+        end
+        elem.output data
+      end
+
 
       def canonical_path(from,path)
         scope = lookup(from)[:full_scope]

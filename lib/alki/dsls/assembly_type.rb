@@ -1,10 +1,10 @@
-require 'alki/assembly_handler_base'
+require 'alki/assembly/handler_base'
 
 Alki do
   require_dsl 'alki/dsls/class'
 
   init do
-    set_super_class Alki::AssemblyHandlerBase, subclass: 'Handler'
+    set_super_class Alki::Assembly::HandlerBase, subclass: 'Handler'
 
     add_method :handler, private: true do |*args|
       self.class::Handler.new(self,*args)
@@ -16,16 +16,6 @@ Alki do
 
     add_method :output do |*args|
       handler(*args).output
-    end
-
-    add_method :lookup do |path,data={}|
-      data = data.dup
-      elem = self
-      path.each do |key|
-        elem = elem.index data, key
-        return nil unless elem
-      end
-      elem.output data
     end
 
     # Add defined methods to handler class

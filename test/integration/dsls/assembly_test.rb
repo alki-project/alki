@@ -16,7 +16,5 @@ describe Alki::Dsls::Assembly do
     end
     res[:class].root.children[:test].must_respond_to :block
     res[:class].root.children[:group1].children[:test2].must_respond_to :block
-
-    r = res[:class].root.lookup [:group1,:test2]
   end
 end

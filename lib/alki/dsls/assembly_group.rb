@@ -9,6 +9,10 @@ Alki do
     ctx[:overlays] = []
   end
 
+  dsl_method :config_dir do
+    ctx[:config_dir]
+  end
+
   finish do
     ctx[:root] = build_group(ctx.delete(:elems))
   end

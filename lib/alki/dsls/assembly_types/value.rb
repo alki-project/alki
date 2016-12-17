@@ -59,16 +59,12 @@ Alki do
             __build__: block
           },
           proc: -> (elem) {
-            elem[:value] = overlays.inject(__build__) do |val,info|
-              overlay = root.lookup(*info.from).lookup(*info.path)
+            elem[:value] = overlays.inject(__build__) do |val,(overlay,args)|
+              overlay = root.lookup(overlay)
               if !overlay.respond_to?(:call) && overlay.respond_to?(:new)
                 overlay = overlay.method(:new)
               end
-              if info.arg
-                overlay.call val, info.arg
-              else
-                overlay.call val
-              end
+              overlay.call val, *args
             end
           },
         },

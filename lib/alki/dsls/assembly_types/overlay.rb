@@ -1,7 +1,14 @@
 Alki do
-  dsl_method :overlay do |target,*overlays,**args|
-    ((ctx[:overlays]||={})[target.to_s.split('.')]||=[]).push *overlays.map{ |o|
-      [o.to_s.split('.'),args.empty? ? nil : args]
-    }
+  require 'alki/overlay_info'
+
+  dsl_method :overlay do |target,overlay,*args|
+    (ctx[:overlays]||=[]) << [
+      [],
+      Alki::OverlayInfo.new(
+        target.to_s.split('.').map(&:to_sym),
+        overlay.to_s.split('.').map(&:to_sym),
+        args
+      )
+    ]
   end
 end

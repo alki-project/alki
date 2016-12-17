@@ -4,7 +4,7 @@ module Alki
   module Execution
     module Context
       def lookup(*path)
-        path.inject(self) do |group,elem|
+        path.flatten.inject(self) do |group,elem|
           unless elem.is_a?(String) or elem.is_a?(Symbol)
             raise ArgumentError.new("lookup can only take Strings or Symbols")
           end
@@ -16,7 +16,7 @@ module Alki
       end
 
       def lazy(*path)
-        path = path.inject('') do |path,elem|
+        path = path.flatten.inject('') do |path,elem|
           unless elem.is_a?(String) or elem.is_a?(Symbol)
             raise ArgumentError.new("lookup can only take Strings or Symbols")
           end

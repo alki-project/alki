@@ -4,9 +4,11 @@ module Alki
   module OverrideBuilder
     def self.build(override_hash=nil,&blk)
       if blk
-        Alki::Dsls::Assembly.build(&blk)[:root]
+        Alki::Dsls::AssemblyGroup.build(&blk)
       elsif override_hash && !override_hash.empty?
-        create_override_group override_hash
+        { root: create_override_group(override_hash), overlays: [] }
+      else
+        { root: nil, overlays: [] }
       end
     end
 

@@ -8,15 +8,12 @@ describe Alki::Dsls::Assembly do
         :val
       end
 
-      load 'file'
-
       group :group1 do
         service :test2 do
           :val2
         end
       end
     end
-    res[:class].root.children[:file].name.must_equal 'file'
     res[:class].root.children[:test].must_respond_to :block
     res[:class].root.children[:group1].children[:test2].must_respond_to :block
 

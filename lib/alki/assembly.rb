@@ -5,28 +5,23 @@ require 'alki/dsls/assembly'
 module Alki
   module Assembly
     def new(overrides={},&blk)
-      Alki::Assembly::Instance.new create_assembly(overrides,&blk), self.assembly_options
+      overrides_info = OverrideBuilder.build(overrides,&blk)
+      assembly = Alki::AssemblyTypes::Mount.new(root, overrides_info[:root])
+
+      Alki::Assembly::Instance.new(assembly, overlays+overrides_info[:overlays])
     end
 
     def root
       self.definition.root
     end
 
-    private
-
-    def create_assembly(overrides={},&blk)
-      config_dir = if assembly_options[:load_path]
-        Alki::Support.load_class("alki/assembly_types/value").new assembly_options[:load_path]
-      else
-        nil
-      end
-
-      Alki::Support.load_class("alki/assembly_types/mount").new root, config_dir, OverrideBuilder.build(overrides,&blk)
+    def overlays
+      self.definition.overlays
     end
 
     class Instance
-      def initialize(assembly,opts)
-        @executor = Alki::Executor.new assembly, opts
+      def initialize(assembly,overlays)
+        @executor = Alki::Executor.new assembly, overlays
       end
 
       def root

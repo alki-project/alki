@@ -6,12 +6,12 @@ require 'alki/support'
 module Alki
   class AssemblyBuilder
     def initialize
-      @assembly_options = {}
+      @config_dir = nil
       @assembly_name = nil
       @definition = nil
     end
 
-    attr_reader :assembly_options, :assembly_name, :definition
+    attr_reader :config_dir, :assembly_name, :definition
 
     def self.build(opts={},&blk)
       new.build(opts,&blk)
@@ -25,11 +25,16 @@ module Alki
         else
           Dir.pwd
         end
-        set_config_directory File.expand_path opts[:config_dir], context
+        @config_dir = File.expand_path opts[:config_dir], context
       end
       set_assembly_name opts[:name] if opts[:name]
       setup_project_assembly opts[:project_assembly] if opts[:project_assembly]
-      load_assembly_file opts[:primary_config] unless definition
+      register_config_directory if @config_dir
+      if blk
+        build_assembly blk
+      else
+        load_assembly_file opts[:primary_config]
+      end
       build_empty_assembly unless definition
       build_class
     end
@@ -41,9 +46,9 @@ module Alki
           !Dir.glob(File.join(dir,'*.gemspec')).empty?
       end
       if root
-        unless @assembly_options[:load_path]
+        unless @config_dir
           config_dir = File.join(root,'config')
-          set_config_directory config_dir if File.exists? config_dir
+          @config_dir = config_dir if File.exists? config_dir
         end
 
         unless @assembly_name
@@ -61,15 +66,14 @@ module Alki
       @assembly_name = name
     end
 
-    def set_config_directory(config_dir)
-      Alki::Dsl.register_dir config_dir, 'alki/dsls/assembly', {config_dir: config_dir}
-      @assembly_options[:load_path] = config_dir
+    def register_config_directory
+      Alki::Dsl.register_dir @config_dir, 'alki/dsls/assembly', {config_dir: @config_dir}
     end
 
     def load_assembly_file(name = nil)
       name ||= 'assembly'
-      if @assembly_options[:load_path]
-        assembly_config_path = File.join(@assembly_options[:load_path],"#{name}.rb")
+      if @config_dir
+        assembly_config_path = File.join(@config_dir,"#{name}.rb")
         if File.exists? assembly_config_path
           @definition = Alki::Dsl.load(assembly_config_path)[:class]
           true
@@ -82,11 +86,10 @@ module Alki
     end
 
     def build_assembly(blk)
-      @definition = Alki::Dsl.build('alki/dsls/assembly', &blk)[:class]
+      @definition = Alki::Dsl.build('alki/dsls/assembly', config_dir: @config_dir, &blk)[:class]
     end
 
     def build_class
-      assembly_options = @assembly_options
       definition = @definition
       Alki::ClassBuilder.build(
         prefix: '',
@@ -99,9 +102,6 @@ module Alki
               definition
             }
           },
-          assembly_options: {
-            body: ->{ assembly_options }
-          }
         }
       )
     end

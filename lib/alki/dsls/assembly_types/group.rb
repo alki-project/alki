@@ -1,15 +1,33 @@
-require 'alki/dsls/assembly'
+require 'alki/dsls/assembly_group'
 require 'alki/execution/context'
 
 Alki do
-  dsl_method :group do |name,&blk|
-    add name, Alki::Dsls::Assembly.build(&blk)[:root]
+  helper :prefix_overlays do |*prefix,overlays|
+    overlays.each do |overlay|
+      overlay[0].unshift *prefix
+    end
+    overlays
   end
 
+  helper :update_overlays do |*prefix,overlays|
+    ctx[:overlays].push *prefix_overlays(*prefix,overlays)
+  end
+
+  dsl_method :group do |name,&blk|
+    grp = Alki::Dsls::AssemblyGroup.build(&blk)
+    add name, grp[:root]
+    update_overlays name, grp[:overlays]
+  end
+
+  dsl_method :load do |group_name,name=group_name.to_s|
+    grp = Alki::Dsl.load(File.expand_path(name+'.rb',ctx[:config_dir]))[:class]
+    add name, grp.root
+    update_overlays name, grp.overlays
+  end
+
+
   element_type :group do
-    OverlayInfo = Struct.new(:path,:from,:arg)
     attr :children, {}
-    attr :overlays, {}
 
     index do
       data[:scope] ||= {}
@@ -17,17 +35,10 @@ Alki do
       update_scope children, data[:prefix], data[:scope]
 
       data[:overlays]||={}
-      if overlays
-        overlays.each do |target,overlays|
-          (data[:overlays][target]||=[]).push *overlays.map {|(path,arg)|
-            OverlayInfo.new(path,data[:prefix].dup,arg)
-          }
-        end
-      end
 
       data[:overlays] = data[:overlays].inject({}) do |no,(target,overlays)|
         target = target.dup
-        if target.empty? || target.shift == key.to_s
+        if target.empty? || target.shift == key.to_sym
           (no[target]||=[]).push *overlays
         end
         no
@@ -40,13 +51,16 @@ Alki do
 
     output do
       {
-        scope: update_scope(children,data[:prefix]||[],{}),
+        full_scope: update_scope(children, data[:prefix], data[:scope]),
+        scope: update_scope(children,data[:prefix]),
         modules: [Alki::Execution::Context],
         proc: ->{self}
       }
     end
 
-    def update_scope(children, prefix, scope)
+    def update_scope(children, prefix, scope=nil)
+      scope ||= {}
+      prefix ||= []
       children.keys.inject(scope) do |h,k|
         h.merge! k => (prefix+[k])
       end

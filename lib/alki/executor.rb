@@ -2,13 +2,20 @@ require 'alki/execution/context_class_builder'
 require 'alki/execution/cache_entry'
 
 module Alki
+  InvalidPathError = Class.new(StandardError)
   class Executor
-    attr_accessor :call_cache, :context_cache
-    def initialize(assembly,data={})
+    def initialize(assembly,overlays)
       @assembly = assembly
-      @data = data
+      @overlays = overlays
+      @data = {}
+      clear
+    end
+
+    def clear
+      @lookup_cache = {}
       @call_cache = {}
       @context_cache = {}
+      @processed_overlays = false
     end
 
     def call(path,*args,&blk)
@@ -22,7 +29,7 @@ module Alki
           raise "Circular element reference found"
         end
       else
-        action = @assembly.lookup(path,@data)
+        action = lookup(path)
         cache_entry = @call_cache[path] = Alki::Execution::CacheEntry.new
         if action[:build]
           build_meta = meta.merge(building: path.join('.'))
@@ -35,6 +42,37 @@ module Alki
     end
 
     private
+
+    def process_overlays
+      unless @processed_overlays
+        @processed_overlays = true
+        @data[:overlays] = {}
+        @overlays.each do |(from,info)|
+          target = canonical_path(from,info.target) or
+            raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
+          overlay = canonical_path(from,info.overlay) or
+            raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
+          (@data[:overlays][target]||=[]) << [overlay,info.args]
+        end
+      end
+    end
+
+    def lookup(path)
+      process_overlays
+      @lookup_cache[path] ||= @assembly.lookup(path,@data).tap do |elem|
+        unless elem
+          raise InvalidPathError.new("Invalid path #{path.inspect}")
+        end
+      end
+    end
+
+    def canonical_path(from,path)
+      scope = lookup(from)[:full_scope]
+      path.inject(nil) do |p,elem|
+        scope = lookup(p)[:scope] if p
+        scope[elem]
+      end
+    end
 
     def process_action(action)
       if action.key?(:value)

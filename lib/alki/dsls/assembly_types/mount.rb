@@ -3,27 +3,27 @@ require 'alki/support'
 
 Alki do
   require_dsl 'alki/dsls/assembly_types/group'
-  require_dsl 'alki/dsls/assembly_types/value'
 
   dsl_method :mount do |name,pkg=name.to_s,**overrides,&blk|
     klass = Alki::Support.load_class pkg
-    config_dir = klass.assembly_options[:load_path]
-    config_dir = build_value config_dir if config_dir
-    overrides = Alki::OverrideBuilder.build overrides, &blk
+    mounted_assemblies = klass.overlays.map do |(path,info)|
+      [path.dup,info]
+    end
+    update_overlays name, mounted_assemblies
 
-    add_mount name, klass.root, config_dir, overrides
+    overrides = Alki::OverrideBuilder.build overrides, &blk
+    update_overlays name, overrides[:overlays]
+
+    add_mount name, klass.root, overrides[:root]
   end
 
   element_type :mount do
     attr :root
-    attr :config_dir
     attr :overrides, nil
 
     index do
-      if key == :config_dir
-        data.merge! main_data
-        config_dir
-      elsif key == :original
+      if key == :original
+        data.merge!(main_data)
         root
       else
         if overrides
@@ -40,30 +40,39 @@ Alki do
 
     output do
       output = root.output(data)
-      add_parent_path output[:scope]
-      output[:scope][:config_dir] = (data[:prefix]||[]) + [:config_dir]
-      output[:scope][:original] = (data[:prefix]||[]) + [:original]
+      update_scope output[:scope]
+      update_scope output[:full_scope]
       output[:scope].merge! overrides.output(data)[:scope] if overrides
+      output[:full_scope].merge! overrides.output(data)[:full_scope] if overrides
       output
     end
 
     def override_data
       od = data.dup
       od[:scope] ||= {}
-      od[:scope].merge! original: ((data[:prefix]||[]) + [:original])
+      add_original od[:scope]
       od
     end
 
     def main_data
       assembly_path = data[:prefix] ? data[:prefix].dup : []
-      scope = {assembly: assembly_path, root: [], config_dir: (assembly_path + [:config_dir])}
+      nd = {scope: {assembly: assembly_path, root: []}}
+      update_scope nd[:scope]
+      nd
+    end
+
+    def update_scope(scope)
       add_parent_path scope
-      {scope: scope, overlays: {}}
+      add_original scope
     end
 
     def add_parent_path(scope)
       parent_path = (data[:scope]||{})[:assembly]||nil
       scope[:parent] = parent_path if parent_path
+    end
+
+    def add_original(scope)
+      scope[:original] = ((data[:prefix]||[]) + [:original])
     end
 
     def override

@@ -11,14 +11,16 @@ module Alki
         @overlays = overlays
         @data = {}
         @semaphore = Monitor.new
-        clear
-      end
-
-      def clear
         @lookup_cache = {}
         @call_cache = {}
         @context_cache = {}
         @processed_overlays = false
+      end
+
+      def synchronize
+        @semaphore.synchronize do
+          yield
+        end
       end
 
       def call(path,*args,&blk)
@@ -29,7 +31,7 @@ module Alki
           cache_entry = @call_cache[path]
           if cache_entry
             if cache_entry.status == :building
-              raise "Circular element reference found"
+              raise "Circular element reference found: #{path.join(".")}"
             end
           else
             @semaphore.synchronize do
@@ -49,6 +51,15 @@ module Alki
         call_value(cache_entry.type,cache_entry.value,meta,args,blk)
       end
 
+      def canonical_path(from,path)
+        from_elem = lookup(from)
+        scope = from_elem[:full_scope] || from_elem[:scope]
+        path.inject(nil) do |p,elem|
+          scope = lookup(p)[:scope] if p
+          scope[elem]
+        end
+      end
+
       private
 
       def process_overlays
@@ -58,8 +69,11 @@ module Alki
           @overlays.each do |(from,info)|
             target = canonical_path(from,info.target) or
               raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
-            overlay = canonical_path(from,info.overlay) or
-              raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
+            overlay = info.overlay
+            if overlay.is_a?(Array)
+              overlay = canonical_path(from,info.overlay) or
+                raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
+            end
             (@data[:overlays][target]||=[]) << [overlay,info.args]
           end
         end
@@ -82,15 +96,6 @@ module Alki
           return nil unless elem
         end
         elem.output data
-      end
-
-
-      def canonical_path(from,path)
-        scope = lookup(from)[:full_scope]
-        path.inject(nil) do |p,elem|
-          scope = lookup(p)[:scope] if p
-          scope[elem]
-        end
       end
 
       def process_action(action)

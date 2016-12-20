@@ -4,6 +4,7 @@ Alki do
 
   finish do
     add :config_dir, build(:value, ctx[:config_dir])
+    add :assembly_name, build(:value, ctx[:assembly_name])
     prefix_overlays :original, ctx[:overlays]
 
     root = ctx[:root]

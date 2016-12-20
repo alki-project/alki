@@ -5,6 +5,7 @@ module Alki
   class << self
     def project_assembly!(opts={},&blk)
       opts[:project_assembly] ||= caller_locations(1,1)[0].absolute_path
+      opts[:load_mode] = :require
       Assembly::Builder.build(opts,&blk)
     end
 

@@ -12,7 +12,7 @@ Alki do
         },
         proc: -> (elem) {
           elem[:value] = overlays.inject(__build__) do |val,(overlay,args)|
-            overlay = root.lookup(overlay)
+            overlay = root.lookup(overlay) if overlay.is_a?(Array)
             if !overlay.respond_to?(:call) && overlay.respond_to?(:new)
               overlay = overlay.method(:new)
             end

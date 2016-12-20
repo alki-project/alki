@@ -210,16 +210,18 @@ describe 'Overlays' do
 
   it 'should allow setting overlays on assembly_instance' do
     values = []
+    mock = Minitest::Mock.new
     assembly = Alki.create_assembly do
       overlay :assembly_instance, :test_overlay
-
+      set :val, 1
       set :test_overlay, ->(value) {
         values << value
-        :transformed
+        mock
       }
     end
-    assembly.new.must_equal :transformed
+    mock.expect :val, 2
+    assembly.new.val.must_equal 2
     values.size.must_equal 1
-    values[0].must_be_instance_of Alki::Assembly::Instance
+    values[0].val.must_equal 1
   end
 end

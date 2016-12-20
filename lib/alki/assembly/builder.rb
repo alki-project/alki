@@ -10,6 +10,7 @@ module Alki
         @config_dir = nil
         @assembly_name = nil
         @definition = nil
+        @load_mode = :direct
       end
 
       attr_reader :config_dir, :assembly_name, :definition
@@ -19,6 +20,7 @@ module Alki
       end
 
       def build(opts={},&blk)
+        @load_mode = opts[:load_mode] if opts[:load_mode]
         build_assembly blk if blk
         if opts[:config_dir]
           context = if opts[:project_assembly]
@@ -68,9 +70,7 @@ module Alki
       end
 
       def register_config_directory
-        opts = {config_dir: @config_dir}
-        opts[:prefix] = File.join(@assembly_name,'alki_config') if @assembly_name
-        Alki::Dsl.register_dir @config_dir, 'alki/dsls/assembly', opts
+        Alki::Dsl.register_dir @config_dir, 'alki/dsls/assembly', dsl_opts
       end
 
       def load_assembly_file(name = nil)
@@ -78,7 +78,7 @@ module Alki
         if @config_dir
           assembly_config_path = File.join(@config_dir,"#{name}.rb")
           if File.exists? assembly_config_path
-            @definition = Alki::Dsl.load(assembly_config_path)[:class]
+            @definition = assembly_config_path
             true
           end
         end
@@ -89,22 +89,47 @@ module Alki
       end
 
       def build_assembly(blk)
-        @definition = Alki::Dsl.build('alki/dsls/assembly', config_dir: @config_dir, &blk)[:class]
+        @definition = Alki::Dsl.build('alki/dsls/assembly', dsl_opts, &blk)[:class]
+      end
+
+      def dsl_opts
+        opts = {config_dir: @config_dir}
+        if @assembly_name
+          opts[:prefix] = File.join(@assembly_name,'alki_config')
+          opts[:assembly_name] = @assembly_name
+        end
+        opts
       end
 
       def build_class
         definition = @definition
+        name = @assembly_name
+        load_class = if @load_mode == :require
+          ->{ name }
+        else
+          ->{ self }
+        end
         Alki::ClassBuilder.build(
           prefix: '',
           name: @assembly_name,
           class_modules: [Alki::Assembly],
           type: :module,
           class_methods: {
-            definition: {
+            assembly_name: {
               body: ->{
-                definition
+                name
               }
             },
+            definition: {
+              body: ->{
+                definition.is_a?(String) ?
+                  Alki::Dsl.load(definition)[:class] :
+                  definition
+              }
+            },
+            load_class: {
+              body: load_class
+            }
           }
         )
       end

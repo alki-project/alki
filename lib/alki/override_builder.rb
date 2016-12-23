@@ -30,7 +30,7 @@ module Alki
     end
 
     def self.build_type(type,*args)
-      Alki::Support.load_class("alki/assembly/types/#{type}").new *args
+      Alki.load("alki/assembly/types/#{type}").new *args
     end
 
   end

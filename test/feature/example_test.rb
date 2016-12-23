@@ -1,7 +1,4 @@
-require 'alki/test'
-
-$LOAD_PATH.unshift Alki::Test.fixture_path('example','lib')
-$LOAD_PATH.unshift Alki::Test.fixture_path('tlogger','lib')
+require 'alki/feature_test'
 
 describe 'Example' do
   before do

@@ -3,7 +3,7 @@ require 'alki/dsls/assembly_type'
 
 describe Alki::Dsls::AssemblyType do
   def build(&blk)
-    @klass = Alki::Dsls::AssemblyType.build(&blk)[:class]
+    @klass = Alki::Dsls::AssemblyType.build(&blk)
   end
 
   def klass

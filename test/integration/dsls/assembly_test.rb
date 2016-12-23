@@ -14,7 +14,7 @@ describe Alki::Dsls::Assembly do
         end
       end
     end
-    res[:class].root.children[:test].must_respond_to :block
-    res[:class].root.children[:group1].children[:test2].must_respond_to :block
+    res.root.children[:test].must_respond_to :block
+    res.root.children[:group1].children[:test2].must_respond_to :block
   end
 end

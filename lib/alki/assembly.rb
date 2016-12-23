@@ -42,7 +42,7 @@ module Alki
     private
 
     def build(type,*args)
-      Alki::Support.load_class("alki/assembly/types/#{type}").new *args
+      Alki.load("alki/assembly/types/#{type}").new *args
     end
   end
 end

@@ -22,7 +22,7 @@ describe 'Pseudo Elements' do
       mount :two, two
       set :num, 1
     end
-    zero = Alki.create_assembly(config_dir: @config_dir) do
+    zero = Alki.create_assembly(name: 'alki_test', config_dir: @config_dir) do
       mount :one, one
       set :num, 0
       set :has_parent do

@@ -29,7 +29,7 @@ module Alki
 
       def __getobj__
         unless @obj
-          Alki::Support.load_class(@assembly_module).raw_instance self, *@args
+          Alki.load(@assembly_module).raw_instance self, *@args
         end
         @obj
       end

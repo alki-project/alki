@@ -22,11 +22,12 @@ describe Alki do
     end
 
     it 'should load assembly definition from config_dir if provided' do
-      build(config_dir: fixture_path('tlogger','config')).new.must_respond_to :log
+      build(name: 'tlogger', config_dir: fixture_path('tlogger','config')).new.must_respond_to :log
     end
 
     it 'should load file other than assembly if provided with primary_config' do
       build(
+        name: 'example',
         config_dir: fixture_path('example','config'),
         primary_config: 'settings'
       ).new.must_respond_to :fizz
@@ -35,16 +36,13 @@ describe Alki do
     it 'should create class if provided with a name' do
       klass = build(name: 'alki_test/test_assembly')
       AlkiTest::TestAssembly.must_equal klass
-      Object.send :remove_const, :AlkiTest
+      undefine :AlkiTest
     end
 
     it 'should automatically determine config_dir and name if project_assembly provided' do
-      was_defined = defined? Tlogger
-      Object.send :remove_const, :Tlogger if was_defined
       klass = build(project_assembly: fixture_path('tlogger','lib','tlogger.rb'))
       Tlogger.must_equal klass
       klass.new.must_respond_to :log
-      Object.send :remove_const, :Tlogger unless was_defined
     end
   end
 

@@ -3,7 +3,7 @@ require 'alki/dsls/service'
 
 describe Alki::Dsls::Service do
   def build(&blk)
-    @c = Alki::Dsls::Service.build(&blk)[:class]
+    @c = Alki::Dsls::Service.build(&blk)
   end
 
   describe :use do

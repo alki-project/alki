@@ -3,8 +3,6 @@ require 'alki/support'
 require 'alki/overlay_info'
 
 Alki do
-  require_dsl 'alki/dsls/dsl'
-
   init do
     ctx[:root] = build(:group,{})
     ctx[:overlays] = []
@@ -16,7 +14,7 @@ Alki do
   end
 
   helper :build do |type,*args|
-    Alki::Support.load_class("alki/assembly/types/#{type}").new *args
+    Alki.load("alki/assembly/types/#{type}").new *args
   end
 
   helper :prefix_overlays do |*prefix,overlays|
@@ -61,13 +59,16 @@ Alki do
   end
 
   dsl_method :load do |group_name,name=group_name.to_s|
-    grp = Alki::Dsl.load(File.expand_path(name+'.rb',ctx[:config_dir]))[:class]
+    unless ctx[:prefix]
+      raise "Load command is not available without a config directory"
+    end
+    grp = Alki.load(File.join(ctx[:prefix],name))
     add name, grp.root
     update_overlays name, grp.overlays
   end
 
   dsl_method :mount do |name,pkg=name.to_s,**overrides,&blk|
-    klass = Alki::Support.load_class pkg
+    klass = Alki.load pkg
     mounted_assemblies = klass.overlays.map do |(path,info)|
       [path.dup,info]
     end

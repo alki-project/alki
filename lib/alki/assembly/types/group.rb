@@ -1,5 +1,5 @@
 Alki do
-  require 'alki/execution/context'
+  require 'alki/execution/helpers'
 
   attr(:children){ {} }
 
@@ -23,7 +23,7 @@ Alki do
     {
       full_scope: update_scope(children, data[:prefix], data[:scope]),
       scope: update_scope(children,data[:prefix]),
-      modules: [Alki::Execution::Context],
+      modules: [Alki::Execution::Helpers],
       proc: ->{self}
     }
   end

@@ -1,11 +1,11 @@
 Alki do
-  require 'alki/execution/value_context'
+  require 'alki/execution/value_helpers'
 
   attr :block
 
   output do
     {
-      modules: [Alki::Execution::ValueContext],
+      modules: [Alki::Execution::ValueHelpers],
       scope: data[:scope],
       build: {
         methods: {

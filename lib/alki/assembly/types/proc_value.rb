@@ -1,5 +1,5 @@
 Alki do
-  require 'alki/execution/value_context'
+  require 'alki/execution/value_helpers'
 
   attr :proc
 
@@ -11,7 +11,7 @@ Alki do
         },
         proc: ->(desc) {desc[:value] = __build__}
       },
-      modules: [Alki::Execution::ValueContext],
+      modules: [Alki::Execution::ValueHelpers],
       scope: data[:scope]
     }
   end

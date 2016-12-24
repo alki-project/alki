@@ -2,14 +2,14 @@ require 'alki/service_delegator'
 
 module Alki
   module Execution
-    module Context
+    module Helpers
       def lookup(*path)
         path.flatten.inject(self) do |group,elem|
           unless elem.is_a?(String) or elem.is_a?(Symbol)
             raise ArgumentError.new("lookup can only take Strings or Symbols")
           end
           elem.to_s.split('.').inject(group) do |group,name|
-            raise "Invalid lookup elem" unless group.is_a? Context
+            raise "Invalid lookup elem" unless group.is_a? Helpers
             group.send name.to_sym
           end
         end

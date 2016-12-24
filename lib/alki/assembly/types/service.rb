@@ -1,5 +1,5 @@
 Alki do
-  require 'alki/execution/value_context'
+  require 'alki/execution/value_helpers'
 
   attr :block
 
@@ -20,7 +20,7 @@ Alki do
           end
         },
       },
-      modules: [Alki::Execution::ValueContext],
+      modules: [Alki::Execution::ValueHelpers],
       scope: data[:scope],
     }
   end

@@ -1,6 +1,6 @@
 module Alki
   module Assembly
-    class HandlerBase
+    class Handler
       def initialize(elem,data,key=nil)
         @elem = elem
         @data = data

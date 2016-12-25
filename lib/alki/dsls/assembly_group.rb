@@ -5,7 +5,7 @@ require 'alki/overlay_info'
 Alki do
   init do
     ctx[:root] = build(:group,{})
-    ctx[:overlays] = []
+    ctx[:meta] = []
   end
 
   helper :add do |name,elem|
@@ -17,16 +17,17 @@ Alki do
     Alki.load("alki/assembly/types/#{type}").new *args
   end
 
-  helper :prefix_overlays do |*prefix,overlays|
-    overlays.each do |overlay|
-      overlay[0].unshift *prefix
+  helper :prefix_meta do |*prefix,meta|
+    meta.each do |data|
+      data[0].unshift *prefix
     end
-    overlays
+    meta
   end
 
-  helper :update_overlays do |*prefix,overlays|
-    ctx[:overlays].push *prefix_overlays(*prefix,overlays)
+  helper :update_meta do |*prefix,meta|
+    ctx[:meta].push *prefix_meta(*prefix,meta)
   end
+
 
   dsl_method :config_dir do
     ctx[:config_dir]
@@ -55,7 +56,7 @@ Alki do
   dsl_method :group do |name,&blk|
     grp = Alki::Dsls::AssemblyGroup.build(&blk)
     add name, grp[:root]
-    update_overlays name, grp[:overlays]
+    update_meta name, grp[:meta]
   end
 
   dsl_method :load do |group_name,name=group_name.to_s|
@@ -64,25 +65,25 @@ Alki do
     end
     grp = Alki.load(File.join(ctx[:prefix],name))
     add name, grp.root
-    update_overlays name, grp.overlays
+    update_meta name, grp.meta
   end
 
   dsl_method :mount do |name,pkg=name.to_s,**overrides,&blk|
     klass = Alki.load pkg
-    mounted_assemblies = klass.overlays.map do |(path,info)|
-      [path.dup,info]
+    mounted_meta = klass.meta.map do |(path,type,info)|
+      [path.dup,type,info]
     end
-    update_overlays name, mounted_assemblies
+    update_meta name, mounted_meta
 
     overrides = Alki::OverrideBuilder.build overrides, &blk
-    update_overlays name, overrides[:overlays]
+    update_meta name, overrides[:meta]
 
     add name, build(:assembly, klass.root, overrides[:root])
   end
 
   dsl_method :overlay do |target,overlay,*args|
-    (ctx[:overlays]||=[]) << [
-      [],
+    (ctx[:meta]||=[]) << [
+      [], :overlay,
       Alki::OverlayInfo.new(
         target.to_s.split('.').map(&:to_sym),
         overlay.to_s.split('.').map(&:to_sym),

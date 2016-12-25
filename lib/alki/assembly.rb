@@ -16,13 +16,13 @@ module Alki
       override_root = overrides_info[:root] || build(:group)
 
       assembly = build :assembly, root, override_root
-      update_instance_overlay = [[],OverlayInfo.new(
+      update_instance_overlay = [[],:overlay, OverlayInfo.new(
         [:assembly_instance],
         ->obj{instance.__setobj__ obj; instance},
         []
       )]
-      all_overlays = overlays+overrides_info[:overlays]+[update_instance_overlay]
-      executor = Executor.new(assembly, all_overlays)
+      all_meta = meta+overrides_info[:meta]+[update_instance_overlay]
+      executor = Executor.new(assembly, all_meta)
 
       override_root.children[:assembly_instance] = build(:service,->{
         root
@@ -35,8 +35,8 @@ module Alki
       self.definition.root
     end
 
-    def overlays
-      self.definition.overlays
+    def meta
+      self.definition.meta
     end
 
     private

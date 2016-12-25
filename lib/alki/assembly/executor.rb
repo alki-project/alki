@@ -6,15 +6,15 @@ module Alki
   InvalidPathError = Class.new(StandardError)
   module Assembly
     class Executor
-      def initialize(assembly,overlays)
+      def initialize(assembly,meta)
         @assembly = assembly
-        @overlays = overlays
+        @meta = meta
         @data = {}
         @semaphore = Monitor.new
         @lookup_cache = {}
         @call_cache = {}
         @context_cache = {}
-        @processed_overlays = false
+        @processed_meta = false
       end
 
       def synchronize
@@ -62,25 +62,31 @@ module Alki
 
       private
 
-      def process_overlays
-        unless @processed_overlays
-          @processed_overlays = true
+      def process_meta
+        unless @processed_meta
+          @processed_meta = true
           @data[:overlays] = {}
-          @overlays.each do |(from,info)|
-            target = canonical_path(from,info.target) or
-              raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
-            overlay = info.overlay
-            if overlay.is_a?(Array)
-              overlay = canonical_path(from,info.overlay) or
-                raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
+          @meta.each do |(from,type,info)|
+            case type
+              when :overlay then process_overlay from, info
             end
-            (@data[:overlays][target]||=[]) << [overlay,info.args]
           end
         end
       end
 
+      def process_overlay(from,info)
+        target = canonical_path(from,info.target) or
+          raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
+        overlay = info.overlay
+        if overlay.is_a?(Array)
+          overlay = canonical_path(from,info.overlay) or
+            raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
+        end
+        (@data[:overlays][target]||=[]) << [overlay, info.args]
+      end
+
       def lookup(path)
-        process_overlays
+        process_meta
         @lookup_cache[path] ||= lookup_elem(path).tap do |elem|
           unless elem
             raise InvalidPathError.new("Invalid path #{path.inspect}")

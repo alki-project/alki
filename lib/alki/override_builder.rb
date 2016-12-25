@@ -6,9 +6,9 @@ module Alki
       if blk
         Alki::Dsls::AssemblyGroup.build(&blk)
       elsif override_hash && !override_hash.empty?
-        { root: create_override_group(override_hash), overlays: [] }
+        { root: create_override_group(override_hash), meta: [] }
       else
-        { root: nil, overlays: [] }
+        { root: nil, meta: [] }
       end
     end
 

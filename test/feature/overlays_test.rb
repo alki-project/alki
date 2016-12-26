@@ -208,6 +208,40 @@ describe 'Overlays' do
     obj.mounted.svc1.must_equal :parent
   end
 
+  it 'should set overlays on overridden elements' do
+    child = Alki.create_assembly do
+      set :test_overlay, ->(value) {:"#{value}_child"}
+      overlay 'svc1', :test_overlay
+      service :svc1 do
+        :test1
+      end
+    end
+    assembly = Alki.create_assembly do
+      group :grp do
+        service :svc2 do
+          :test2
+        end
+      end
+      overlay 'grp.svc2', :test_overlay
+      set :test_overlay, ->(value) {:"#{value}_parent"}
+
+      mount :mounted, child do
+        service :svc1 do
+          :test12
+        end
+      end
+    end
+    obj = assembly.new do
+      group :grp do
+        service :svc2 do
+          :test22
+        end
+      end
+    end
+    obj.mounted.svc1.must_equal :test12_child
+    obj.grp.svc2.must_equal :test22_parent
+  end
+
   it 'should allow setting overlays on assembly_instance' do
     values = []
     mock = Minitest::Mock.new

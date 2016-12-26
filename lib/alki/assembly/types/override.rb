@@ -10,13 +10,6 @@ Alki do
 
     if main_child && override_child
       (data[:main][:scope]||={}).merge! (data[:override][:scope]||{})
-      data[:main][:overlays]||={}
-      if data[:override][:overlays]
-        data[:override][:overlays].each do |target,overlays|
-          (data[:main][:overlays][target]||=[]).push *overlays
-        end
-      end
-      data[:override][:overlays]=data[:main][:overlays].dup
       Alki::Assembly::Types::Override.new main_child, override_child
     elsif main_child
       data.replace data[:main]

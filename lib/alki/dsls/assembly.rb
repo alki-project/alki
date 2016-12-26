@@ -5,7 +5,6 @@ Alki do
   finish do
     add :config_dir, build(:value, ctx[:config_dir])
     add :assembly_name, build(:value, ctx[:assembly_name])
-    prefix_meta :original, ctx[:meta]
 
     root = ctx[:root]
     meta = ctx[:meta]

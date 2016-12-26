@@ -73,6 +73,7 @@ Alki do
   end
 
   def update_scope(data,scope=data[:scope])
+    scope[:root] = []
     add_parent_path scope, data
     add_original scope, data
   end

@@ -28,26 +28,27 @@ module Alki
       end
 
       def execute(meta,path,args,blk)
-          cache_entry = @call_cache[path]
-          if cache_entry
-            if cache_entry.status == :building
-              raise "Circular element reference found: #{path.join(".")}"
-            end
-          else
-            @semaphore.synchronize do
-              cache_entry = @call_cache[path]
-              unless cache_entry
-                cache_entry = @call_cache[path] = Alki::Execution::CacheEntry.new
-                action = lookup(path)
-                if action[:build]
-                  build_meta = meta.merge(building: path.join('.'))
-                  build_action = action[:build].merge(scope: action[:scope],modules: action[:modules])
-                  call_value(*process_action(build_action),build_meta,[action])
-                end
-                cache_entry.finish *process_action(action)
+        cache_entry = @call_cache[path]
+        if cache_entry
+          if cache_entry.status == :building
+            raise "Circular element reference found: #{path.join(".")}"
+          end
+        else
+          synchronize do
+            cache_entry = @call_cache[path]
+            unless cache_entry
+              cache_entry = @call_cache[path] = Alki::Execution::CacheEntry.new
+              action = lookup(path)
+              if action[:build]
+                build_meta = meta.merge(building: path.join('.'))
+                build_meta.merge!(action[:meta]) if action[:meta]
+                build_action = action[:build].merge(scope: action[:scope],modules: action[:modules])
+                call_value(*process_action(build_action),build_meta,[action])
               end
+              cache_entry.finish *process_action(action)
             end
           end
+        end
         call_value(cache_entry.type,cache_entry.value,meta,args,blk)
       end
 

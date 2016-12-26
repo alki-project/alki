@@ -19,7 +19,7 @@ Alki do
 
   helper :prefix_meta do |*prefix,meta|
     meta.each do |data|
-      data[0].unshift *prefix
+      data[0].unshift *prefix.map(&:to_sym)
     end
     meta
   end

@@ -6,9 +6,25 @@ Alki do
   index do
     update_scope children, data[:prefix], data[:scope]
 
+    data[:tags] = data[:tags].inject({}) do |tags,(tag,tagged)|
+      tagged.each do |path|
+        if path.empty? || path[0] == key.to_sym
+          tags[tag] = (tags[tag]||[]) | [path[1..-1]]
+        end
+      end
+      tags
+    end
+
     data[:overlays] = data[:overlays].inject({}) do |no,(target,overlays)|
       target = target.dup
-      if target.empty? || target.shift == key.to_sym
+      if target.size == 1 && target[0].to_s.start_with?('%')
+        tags = data[:tags][target[0].to_s[1..-1].to_sym]
+        if tags
+          tags.each do |target|
+            (no[target]||=[]).push *overlays
+          end
+        end
+      elsif target.empty? || target.shift == key.to_sym
         (no[target]||=[]).push *overlays
       end
       no

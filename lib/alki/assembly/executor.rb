@@ -67,17 +67,33 @@ module Alki
         unless @processed_meta
           @processed_meta = true
           @data[:overlays] = {}
+          @data[:tags] = {}
           @meta.each do |(from,type,info)|
             case type
               when :overlay then process_overlay from, info
+              when :tags then process_tags from, info
             end
           end
         end
       end
 
+      def process_tags(from,tags)
+        tags.each do |tag|
+          (@data[:tags][tag]||=[]) << from
+        end
+      end
+
       def process_overlay(from,info)
-        target = canonical_path(from,info.target) or
+        target_path = info.target
+        if target_path.last.to_s.start_with?('%')
+          tag = target_path.pop
+        end
+        if target_path == []
+          target_path = [:root]
+        end
+        target = canonical_path(from,target_path) or
           raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
+        target = target.dup.push tag if tag
         overlay = info.overlay
         if overlay.is_a?(Array)
           overlay = canonical_path(from,info.overlay) or

@@ -9,6 +9,10 @@ Alki do
   end
 
   helper :add do |name,elem|
+    if @tags
+      ctx[:meta] << [[name.to_sym],:tags,@tags]
+      @tags = nil
+    end
     ctx[:root].children[name.to_sym] = elem
     nil
   end
@@ -28,6 +32,12 @@ Alki do
     ctx[:meta].push *prefix_meta(*prefix,meta)
   end
 
+  dsl_method :tag do |*tags|
+    unless tags.all?{|t| t.is_a? Symbol }
+      raise "Tags must be symbols"
+    end
+    @tags = tags
+  end
 
   dsl_method :config_dir do
     ctx[:config_dir]

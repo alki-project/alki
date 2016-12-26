@@ -21,6 +21,18 @@ Alki do
     Alki.load("alki/assembly/types/#{type}").new *args
   end
 
+  dsl_method :add_overlay do |type,target,overlay,args|
+    (ctx[:meta]||=[]) << [
+      [], :overlay,
+      Alki::OverlayInfo.new(
+        type,
+        target.to_s.split('.').map(&:to_sym),
+        overlay.to_s.split('.').map(&:to_sym),
+        args
+      )
+    ]
+  end
+
   helper :prefix_meta do |*prefix,meta|
     meta.each do |data|
       data[0].unshift *prefix.map(&:to_sym)
@@ -91,14 +103,11 @@ Alki do
     add name, build(:assembly, klass.root, overrides[:root])
   end
 
+  dsl_method :reference_overlay do |target,overlay,*args|
+    add_overlay :reference, target, overlay, args
+  end
+
   dsl_method :overlay do |target,overlay,*args|
-    (ctx[:meta]||=[]) << [
-      [], :overlay,
-      Alki::OverlayInfo.new(
-        target.to_s.split('.').map(&:to_sym),
-        overlay.to_s.split('.').map(&:to_sym),
-        args
-      )
-    ]
+    add_overlay :value, target, overlay, args
   end
 end

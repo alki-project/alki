@@ -99,7 +99,7 @@ module Alki
           overlay = canonical_path(from,info.overlay) or
             raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
         end
-        (@data[:overlays][target]||=[]) << [overlay, info.args]
+        (@data[:overlays][target]||=[]) << [info.type, overlay, info.args]
       end
 
       def lookup(path)

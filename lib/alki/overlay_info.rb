@@ -1,3 +1,3 @@
 module Alki
-  OverlayInfo = Struct.new(:target,:overlay,:args)
+  OverlayInfo = Struct.new(:type,:target,:overlay,:args)
 end

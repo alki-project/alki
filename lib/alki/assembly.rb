@@ -17,6 +17,7 @@ module Alki
 
       assembly = build :assembly, root, override_root
       update_instance_overlay = [[],:overlay, OverlayInfo.new(
+        :value,
         [:assembly_instance],
         ->obj{instance.__setobj__ obj; instance},
         []

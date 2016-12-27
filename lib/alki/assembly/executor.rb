@@ -28,7 +28,10 @@ module Alki
       end
 
       def execute(meta,path,args,blk)
-        cache_entry = @call_cache[path]
+        cache_entry = nil
+        synchronize do
+          cache_entry = @call_cache[path]
+        end
         if cache_entry
           if cache_entry.status == :building
             raise "Circular element reference found: #{path.join(".")}"

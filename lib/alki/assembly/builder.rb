@@ -11,6 +11,7 @@ module Alki
         @assembly_name = nil
         @definition = nil
         @load_mode = :direct
+        @primary_config = 'assembly'
       end
 
       attr_reader :config_dir, :assembly_name, :definition
@@ -22,6 +23,7 @@ module Alki
       def build(opts={},&blk)
         @load_mode = opts[:load_mode] if opts[:load_mode]
         build_assembly blk if blk
+        @primary_config = opts[:primary_config] if opts[:primary_config]
         set_assembly_name opts[:name] if opts[:name]
         setup_project_assembly opts[:project_assembly] if opts[:project_assembly]
         if opts[:config_dir]
@@ -36,7 +38,7 @@ module Alki
         if blk
           build_assembly blk
         else
-          load_assembly_file opts[:primary_config]
+          load_assembly_file
         end
         build_empty_assembly unless definition
         build_class
@@ -44,7 +46,7 @@ module Alki
 
       def setup_project_assembly(path)
         root = Alki::Support.find_root(path) do |dir|
-          File.exists?(File.join(dir,'config','assembly.rb')) ||
+          File.exists?(File.join(dir,'config',"#{@primary_config}.rb")) ||
             File.exists?(File.join(dir,'Gemfile')) ||
             !Dir.glob(File.join(dir,'*.gemspec')).empty?
         end
@@ -80,10 +82,9 @@ module Alki
         Alki::Loader.register @config_dir, builder: 'alki/dsls/assembly', name: config_prefix, **dsl_opts
       end
 
-      def load_assembly_file(name = nil)
-        name ||= 'assembly'
+      def load_assembly_file
         if @config_dir
-          @definition = File.join(config_prefix,name)
+          @definition = File.join(config_prefix,@primary_config)
           true
         end
       end

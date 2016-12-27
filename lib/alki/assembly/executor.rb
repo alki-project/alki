@@ -84,7 +84,7 @@ module Alki
       end
 
       def process_overlay(from,info)
-        target_path = info.target
+        target_path = info.target.dup
         if target_path.last.to_s.start_with?('%')
           tag = target_path.pop
         end

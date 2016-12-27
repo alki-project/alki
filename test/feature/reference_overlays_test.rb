@@ -17,7 +17,7 @@ describe 'Reference Overlays' do
         :"#{val}_#{svc_ref}_#{func}_#{fact(:f1)}_#{fact(:f2)}"
       end
       reference_overlay :svc, :overlay
-      set :overlay, -> obj { :"o#{obj}"}
+      set :overlay, -> ref { :"o#{ref.call}"}
     end
     assembly.new.svc.must_equal :oval_osvc_ofunc_of1_of2
   end

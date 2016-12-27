@@ -1,6 +1,5 @@
 require 'alki/execution/helpers'
 require 'alki/overlay_delegator'
-require 'alki/reloadable_delegator'
 
 module Alki
   module Execution

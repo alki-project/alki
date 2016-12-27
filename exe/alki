@@ -102,8 +102,8 @@ if options[:addons].include? "reload"
 
   env_name = project_name.tr('a-z/','A-Z_')+"_ENV"
   fw.add_line primary_config_path, "  mount(:reloader, 'alki/reload'){ set(:watch) { development? } }", match: /^\s*mount\(? *:reloader/, after: 'Alki do'
-  fw.add_line primary_config_path, "  set(:development?){ environment == 'development' }", match: /^\s*set :development?/, after: 'Alki do'
-  fw.add_line primary_config_path, "  set(:environment){ ENV['#{env_name}'] || 'development' }", match: /^\s*set :environment/, after: 'Alki do'
+  fw.add_line primary_config_path, "  set(:development?){ environment == 'development' }", match: /^\s*set\(? *:development\?/, after: 'Alki do'
+  fw.add_line primary_config_path, "  set(:environment){ ENV['#{env_name}'] || 'development' }", match: /^\s*set\(? *:environment/, after: 'Alki do'
 end
 
 fw.write

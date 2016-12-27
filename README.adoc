@@ -1,12 +1,34 @@
 # What is Alki?
 
-Alki is a framework for creating projects that are modular, testable, and well organized.
+Alki is a small framework for Ruby that provides a powerful dependency injection and program
+management system with helpers for testing, creating executables, and writing DSLs.
 
-It's goal is to remove uncertainty and friction when building Ruby projects, allowing developers to focus on implementing business logic.
+It's goal is to remove uncertainty and friction when building Ruby projects, allowing developers to focus on
+implementing business logic. It can be used alongside other frameworks such as Ruby on Rails.
 
-Best place to start would be to check out some examples:
+Alki tries to combine time tested software engineering concepts such as
+https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)[SOLID],
+and  https://en.wikipedia.org/wiki/Inversion_of_control[Inversion of Control], with
+Ruby style ease of use, DSLs, and
+https://en.wikipedia.org/wiki/Convention_over_configuration[Convention over Configuration].
 
-* https://github.com/alki-project/alki-example
-* https://github.com/alki-project/alki/tree/master/test/fixtures/example
+Further documentation can be found at https://github.com/alki-project/alki/blob/master/doc/index.adoc
 
-Docs can be found at https://github.com/alki-project/alki/blob/master/doc/index.adoc
+Example projects can be found at https://github.com/alki-project/alki-examples
+
+## Getting Started
+
+Install from rubygems
+
+    gem install alki
+
+Setting up Alki in your project requires only creating a couple of files, but the
+`alki` command line tool can also be used to automate the process. Project names
+should be given in lowercase using underscores and forward slashes as separators.
+
+.Example project
+```
+$ cd <project dir>
+$ alki init --addons console <project name>
+```
+

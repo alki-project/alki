@@ -1,5 +1,4 @@
-Bundler.require(:test)
-require 'minitest/autorun'
+Bundler.require(:test,:development)
 require 'alki/dsl'
 
 module Alki
@@ -32,8 +31,18 @@ module Alki
   end
 end
 
-class Minitest::Spec
-  include Alki::Test
+if defined? Minitest
+  require 'minitest/autorun'
+  class Minitest::Spec
+    include Alki::Test
+  end
+end
+
+if defined? RSpec
+  require 'rspec/autorun'
+  RSpec.configure do |config|
+    config.include Alki::Test
+  end
 end
 
 unless $LOAD_PATH.include? Alki::Test.lib_dir

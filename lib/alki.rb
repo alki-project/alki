@@ -1,18 +1,15 @@
 require 'alki/dsl'
 require 'alki/assembly/builder'
 
-module Alki
-  class << self
-    def project_assembly!(opts={},&blk)
-      opts[:project_assembly] ||= caller_locations(1,1)[0].absolute_path
-      opts[:load_mode] = :require
-      Assembly::Builder.build(opts,&blk)
-    end
+Alki::Assembly::Builder.build project_assembly: __FILE__, load_mode: :require
 
-    alias_method :create_assembly!, :project_assembly!
-
-    def create_assembly(opts={},&blk)
-      Assembly::Builder.build(opts,&blk)
-    end
-  end
+def Alki.project_assembly!(opts={},&blk)
+  opts[:project_assembly] ||= caller_locations(1,1)[0].absolute_path
+  opts[:load_mode] = :require
+  Alki::Assembly::Builder.build(opts,&blk)
 end
+
+def Alki.create_assembly(opts={},&blk)
+  Alki::Assembly::Builder.build(opts,&blk)
+end
+

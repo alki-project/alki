@@ -1,11 +1,13 @@
 Alki do
+  mount :alki
+
   load :settings
   load :handlers
 
   factory :log_overlay do
     require 'log_overlay'
     -> (obj) {
-      delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
+      alki.delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
     }
   end
 

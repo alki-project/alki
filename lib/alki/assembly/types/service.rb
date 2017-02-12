@@ -4,18 +4,19 @@ Alki do
   attr :block
 
   output do
-    overlays = (data[:overlays][[]]||[]).group_by(&:first)
+    overlays = (data[:overlays][[]]||[]).sort_by(&:order).group_by(&:type)
     value_overlays = overlays[:value]||[]
     reference_overlays = overlays[:reference]||[]
     methods = {
       __build__: block,
       __apply_overlays__: -> obj, overlays {
-        overlays.inject(obj) do |val,(_,overlay,args)|
+        overlays.inject(obj) do |val,info|
+          overlay = info.overlay
           overlay = __raw_root__.lookup(overlay) if overlay.is_a?(Array)
           if !overlay.respond_to?(:call) && overlay.respond_to?(:new)
             overlay = overlay.method(:new)
           end
-          overlay.call val, *args
+          overlay.call val, *info.args
         end
       }
     }
@@ -31,7 +32,7 @@ Alki do
           elem[:value] = __apply_overlays__ __build__, value_overlays
         },
       },
-      modules: [Alki::Execution::ValueHelpers],
+      modules: [Alki::Execution::Helpers],
       scope: data[:scope],
     }
   end

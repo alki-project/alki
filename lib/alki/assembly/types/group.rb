@@ -6,6 +6,7 @@ Alki do
   index do
     update_scope children, data[:prefix], data[:scope]
 
+    data[:tags] ||= {}
     data[:tags] = data[:tags].inject({}) do |tags,(tag,tagged)|
       tagged.each do |path|
         if path.empty? || path[0] == key.to_sym
@@ -15,6 +16,7 @@ Alki do
       tags
     end
 
+    data[:overlays] ||= {}
     data[:overlays] = data[:overlays].inject({}) do |no,(target,overlays)|
       target = target.dup
       if target.size == 1 && target[0].to_s.start_with?('%')
@@ -36,10 +38,16 @@ Alki do
   end
 
   output do
+    children_names = children.keys.map(&:to_sym)
     {
       full_scope: update_scope(children, data[:prefix], data[:scope]),
       scope: update_scope(children,data[:prefix]),
       modules: [Alki::Execution::Helpers],
+      methods: {
+        children: -> {
+          children_names
+        }
+      },
       proc: ->{self}
     }
   end

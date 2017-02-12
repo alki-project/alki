@@ -10,7 +10,7 @@ Alki do
 
   helper :add do |name,elem|
     if @tags
-      ctx[:meta] << [[name.to_sym],:tags,@tags]
+      ctx[:meta] << [[name.to_sym],build_meta(:tags,@tags)]
       @tags = nil
     end
     ctx[:root].children[name.to_sym] = elem
@@ -21,12 +21,16 @@ Alki do
     Alki.load("alki/assembly/types/#{type}").new *args
   end
 
+  helper :build_meta do |type,*args|
+    Alki.load("alki/assembly/meta/#{type}").new *args
+  end
+
   dsl_method :add_overlay do |type,target,overlay,args|
     (ctx[:meta]||=[]) << [
-      [], :overlay,
-      Alki::OverlayInfo.new(
-        type,
-        target.to_s.split('.').map(&:to_sym),
+      [],
+      build_meta(
+        :overlay,
+        type, target.to_s.split('.').map(&:to_sym),
         overlay.to_s.split('.').map(&:to_sym),
         args
       )
@@ -79,6 +83,25 @@ Alki do
     grp = Alki::Dsls::AssemblyGroup.build(&blk)
     add name, grp[:root]
     update_meta name, grp[:meta]
+  end
+
+  dsl_method :auto_group do |name,dir,callable,*args|
+    grp = build(:group)
+    dir = File.join(File.expand_path(dir,ctx[:config_dir]),"")
+    Dir.glob(File.join(dir,'**','*.rb')).each do |path|
+      require_path = Alki::Loader.lookup_name path
+      if require_path
+        elems = path[dir.size..-1].chomp('.rb').split('/')
+        *parents,basename = elems
+        parent_group = parents.inject(grp) do |grp,parent|
+          grp.children[parent] ||= build(:group)
+        end
+        parent_group.children[basename] = build :service,-> {
+          lookup(callable).call require_path, *args
+        }
+      end
+    end
+    add name, grp
   end
 
   dsl_method :load do |group_name,name=group_name.to_s|

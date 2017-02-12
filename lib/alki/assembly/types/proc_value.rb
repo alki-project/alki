@@ -11,7 +11,7 @@ Alki do
         },
         proc: ->(desc) {desc[:value] = __build__}
       },
-      modules: [Alki::Execution::ValueHelpers],
+      modules: [Alki::Execution::Helpers],
       scope: data[:scope]
     }
   end

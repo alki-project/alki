@@ -1,15 +1,14 @@
+require 'concurrent/immutable_struct'
+
 module Alki
   module Execution
-    class CacheEntry
-      attr_accessor :type,:value,:status
-      def initialize
-        @status = :building
+    class CacheEntry < Concurrent::ImmutableStruct.new(:type,:value,:status)
+      def self.building
+        new nil, nil, :building
       end
 
-      def finish(type,value)
-        @status = :done
-        @type = type
-        @value = value
+      def self.finished(type,value)
+        new type, value, :done
       end
     end
   end

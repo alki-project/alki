@@ -20,7 +20,8 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.6"
   spec.add_development_dependency "rake", '~> 10.0'
-  spec.add_development_dependency "minitest", "~> 5.9", '>= 5.9.1'
-  spec.add_dependency "alki-dsl", "~> 0.4"
+  spec.add_dependency "alki-dsl", "~> 0.4", ">= 0.4.1"
   spec.add_dependency "alki-support", "~> 0.7"
+  spec.add_dependency "concurrent-ruby", "~> 1.0"
+  spec.add_dependency "ice_nine", "~> 0.11"
 end

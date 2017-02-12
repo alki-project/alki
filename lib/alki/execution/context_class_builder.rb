@@ -36,7 +36,7 @@ module Alki
         (config[:methods]||{}).each do |name,body|
           methods[name] = {
             body: body,
-            private: true,
+            private: name.to_s.start_with?('__'),
           }
         end
         ClassBuilder.build(

@@ -4,7 +4,7 @@ Alki do
   attr :block
   output do
     {
-      modules: [Alki::Execution::ValueHelpers],
+      modules: [Alki::Execution::Helpers],
       scope: data[:scope],
       proc: block
     }

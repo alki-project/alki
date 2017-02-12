@@ -5,7 +5,7 @@ Alki do
 
   output do
     {
-      modules: [Alki::Execution::ValueHelpers],
+      modules: [Alki::Execution::Helpers],
       scope: data[:scope],
       build: {
         methods: {

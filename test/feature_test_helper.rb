@@ -5,7 +5,8 @@ class Minitest::Spec
   before do
     @test_projects = [
       Alki::Test.fixture_path('example'),
-      Alki::Test.fixture_path('tlogger')
+      Alki::Test.fixture_path('tlogger'),
+      Alki::Test.fixture_path('auto_group')
     ]
     @test_projects.each do |proj|
       $LOAD_PATH.unshift File.join(proj,'lib')
@@ -25,6 +26,7 @@ class Minitest::Spec
     end
     undefine :Example, false
     undefine :Tlogger, false
+    undefine :AutoGroupTest, false
   end
 
   def undefine(sym,force=true)

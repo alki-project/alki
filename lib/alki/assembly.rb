@@ -1,9 +1,9 @@
 require 'alki/override_builder'
-require 'alki/assembly/types/assembly'
-require 'alki/assembly/types/group'
 require 'alki/assembly/instance'
 require 'alki/assembly/executor'
+require 'alki/assembly/meta/overlay'
 require 'alki/overlay_info'
+require 'ice_nine'
 
 module Alki
   module Assembly
@@ -16,19 +16,19 @@ module Alki
       override_root = overrides_info[:root] || build(:group)
 
       assembly = build :assembly, root, override_root
-      update_instance_overlay = [[],:overlay, OverlayInfo.new(
+      update_instance_overlay = [[],Meta::Overlay.new(
         :value,
         [:assembly_instance],
         ->obj{instance.__setobj__ obj; instance},
         []
       )]
       all_meta = meta+overrides_info[:meta]+[update_instance_overlay]
+      IceNine.deep_freeze all_meta
       executor = Executor.new(assembly, all_meta)
 
-      override_root.children[:assembly_instance] = build(:service,->{
-        root
-      })
+      override_root.children[:assembly_instance] = build(:service,->{ root })
       override_root.children[:assembly_executor] = build(:value,executor)
+
       executor.call [:assembly_instance]
     end
 

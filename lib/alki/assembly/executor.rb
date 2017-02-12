@@ -1,24 +1,22 @@
 require 'alki/execution/context_class_builder'
 require 'alki/execution/cache_entry'
-require 'thread'
+require 'concurrent'
+require 'alki/invalid_path_error'
 
 module Alki
-  InvalidPathError = Class.new(StandardError)
   module Assembly
     class Executor
       def initialize(assembly,meta)
         @assembly = assembly
         @meta = meta
-        @data = {}
-        @semaphore = Monitor.new
+        @semaphore = Concurrent::ReentrantReadWriteLock.new
         @lookup_cache = {}
         @call_cache = {}
         @context_cache = {}
-        @processed_meta = false
       end
 
-      def synchronize
-        @semaphore.synchronize do
+      def lock
+        @semaphore.with_write_lock do
           yield
         end
       end
@@ -27,32 +25,19 @@ module Alki
         execute({},path,args,blk)
       end
 
-      def execute(meta,path,args,blk)
-        cache_entry = nil
-        synchronize do
-          cache_entry = @call_cache[path]
-        end
-        if cache_entry
-          if cache_entry.status == :building
-            raise "Circular element reference found: #{path.join(".")}"
-          end
-        else
-          synchronize do
-            cache_entry = @call_cache[path]
-            unless cache_entry
-              cache_entry = @call_cache[path] = Alki::Execution::CacheEntry.new
-              action = lookup(path)
-              if action[:build]
-                build_meta = meta.merge(building: path.join('.'))
-                build_meta.merge!(action[:meta]) if action[:meta]
-                build_action = action[:build].merge(scope: action[:scope],modules: action[:modules])
-                call_value(*process_action(build_action),build_meta,[action])
+      def lookup(path)
+        @semaphore.with_read_lock do
+          unless @lookup_cache[path]
+            @semaphore.with_write_lock do
+              @lookup_cache[path] = lookup_elem(path).tap do |elem|
+                unless elem
+                  raise InvalidPathError.new("Invalid path #{path.inspect}")
+                end
               end
-              cache_entry.finish *process_action(action)
             end
           end
+          @lookup_cache[path]
         end
-        call_value(cache_entry.type,cache_entry.value,meta,args,blk)
       end
 
       def canonical_path(from,path)
@@ -64,58 +49,52 @@ module Alki
         end
       end
 
-      private
-
-      def process_meta
-        unless @processed_meta
-          @processed_meta = true
-          @data[:overlays] = {}
-          @data[:tags] = {}
-          @meta.each do |(from,type,info)|
-            case type
-              when :overlay then process_overlay from, info
-              when :tags then process_tags from, info
+      def execute(meta,path,args,blk)
+        type,value = nil,nil
+        @semaphore.with_read_lock do
+          cache_entry = @call_cache[path]
+          if cache_entry
+            if cache_entry == :building
+              raise "Circular element reference found: #{path.join(".")}"
+            end
+            type,value = cache_entry.type,cache_entry.value
+          else
+            @semaphore.with_write_lock do
+              @call_cache[path] = :building
+              type, value = build(path)
+              @call_cache[path] = Alki::Execution::CacheEntry.finished type, value
             end
           end
         end
+        call_value(type, value, meta, args, blk)
       end
 
-      def process_tags(from,tags)
-        tags.each do |tag|
-          (@data[:tags][tag]||=[]) << from
+      private
+
+      def build(path)
+        action = lookup(path)
+        if action[:build]
+          build_meta = {building: path.join('.')}
+          build_meta.merge!(action[:meta]) if action[:meta]
+          build_action = action[:build].merge(scope: action[:scope], modules: action[:modules])
+          call_value(*process_action(build_action), build_meta, [action])
         end
+        process_action action
       end
 
-      def process_overlay(from,info)
-        target_path = info.target.dup
-        if target_path.last.to_s.start_with?('%')
-          tag = target_path.pop
-        end
-        if target_path == []
-          target_path = [:root]
-        end
-        target = canonical_path(from,target_path) or
-          raise InvalidPathError.new("Invalid overlay target #{info.target.join('.')}")
-        target = target.dup.push tag if tag
-        overlay = info.overlay
-        if overlay.is_a?(Array)
-          overlay = canonical_path(from,info.overlay) or
-            raise InvalidPathError.new("Invalid overlay path #{info.overlay.join('.')}")
-        end
-        (@data[:overlays][target]||=[]) << [info.type, overlay, info.args]
-      end
-
-      def lookup(path)
-        process_meta
-        @lookup_cache[path] ||= lookup_elem(path).tap do |elem|
-          unless elem
-            raise InvalidPathError.new("Invalid path #{path.inspect}")
+      def data_copy
+        unless @data
+          @data = {}
+          @meta.each do |(from,meta)|
+            meta.process self, from, @data
           end
+          IceNine.deep_freeze @data
         end
+        @data.dup
       end
 
       def lookup_elem(path)
-        data = @data.dup
+        data = data_copy
         elem = @assembly
         path.each do |key|
           elem = elem.index data, key

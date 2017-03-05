@@ -1,3 +1,3 @@
 module Alki
-  VERSION = "0.11.0.pre2"
+  VERSION = "0.11.0"
 end

@@ -11,7 +11,7 @@ module Alki
       Instance.new load_class, [overrides, blk]
     end
 
-    def raw_instance(instance,overrides,blk)
+    def raw_instance(overrides,blk,&wrapper)
       overrides_info = OverrideBuilder.build(overrides,&blk)
       override_root = overrides_info[:root] || build(:group)
 
@@ -19,7 +19,7 @@ module Alki
       update_instance_overlay = [[],Meta::Overlay.new(
         :value,
         [:assembly_instance],
-        ->obj{instance.__setobj__ obj; instance},
+        ->obj{wrapper.call obj},
         []
       )]
       all_meta = meta+overrides_info[:meta]+[update_instance_overlay]

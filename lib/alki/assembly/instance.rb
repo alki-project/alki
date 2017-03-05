@@ -1,6 +1,7 @@
 require 'delegate'
 require 'concurrent'
 require 'alki/support'
+require 'concurrent'
 
 module Alki
   module Assembly
@@ -9,37 +10,46 @@ module Alki
         @assembly_module = assembly_module
         @args = args
         @version = 0
+        @needs_load = true
+        @lock = Concurrent::ReentrantReadWriteLock.new
       end
 
       def __reload__
-        if @obj.respond_to? :__reload__
-          did_something = @obj.__reload__
+        @lock.with_read_lock do
+          if @obj
+            @lock.with_write_lock do
+              @needs_load = true
+              @version+=1
+            end
+          end
         end
-        if did_something != false && @obj
-          __setobj__ nil
-          did_something = true
-        end
-        if did_something
-          GC.start
-        end
-        !!did_something
-      end
-
-      def __setobj__(obj)
-        @version += 1
-        @obj = obj
       end
 
       def __version__
-        @version
+        @lock.with_read_lock do
+          @version
+        end
       end
 
       def __getobj__
-        unless @obj
-          # Will call __setobj__
-          Alki.load(@assembly_module).raw_instance self, *@args
+        @lock.with_read_lock do
+          __load__ if @needs_load
+          @obj
         end
-        @obj
+      end
+
+      private
+
+      def __load__
+        # Calls __setobj__
+        @lock.with_write_lock do
+          @needs_load = false
+          @obj.__unload__ if @obj.respond_to?(:__unload__)
+          Alki.load(@assembly_module).raw_instance *@args do |obj|
+            @obj = obj
+            self
+          end
+        end
       end
     end
   end

@@ -7,6 +7,7 @@ Alki do
     overlays = (data[:overlays][[]]||[]).sort_by(&:order).group_by(&:type)
     value_overlays = overlays[:value]||[]
     reference_overlays = overlays[:reference]||[]
+    tags = data[:tags].inject({}){|tags,(tag,tagged)| tags[tag] = tagged[[]]; tags}
     methods = {
       __build__: block,
       __apply_overlays__: -> obj, overlays {
@@ -34,6 +35,7 @@ Alki do
       },
       modules: [Alki::Execution::Helpers],
       scope: data[:scope],
+      meta: {tags: tags}
     }
   end
 end

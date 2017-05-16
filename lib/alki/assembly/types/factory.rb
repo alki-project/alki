@@ -1,5 +1,6 @@
 Alki do
   require 'alki/execution/value_helpers'
+  require 'alki/execution/factory'
 
   attr :block
 
@@ -19,7 +20,7 @@ Alki do
             if !args.empty? || blk
               __create__ *args, &blk
             else
-              method(:__create__)
+              Alki::Execution::Factory.new method(:__create__)
             end
           }
         }

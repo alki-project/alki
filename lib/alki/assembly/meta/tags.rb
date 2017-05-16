@@ -8,8 +8,8 @@ module Alki
 
         def process(_executor,from,data)
           data[:tags]||={}
-          @tags.each do |tag|
-            (data[:tags][tag.to_sym]||=[]) << from
+          @tags.each do |tag,value|
+            (data[:tags][tag.to_sym]||={})[from] = value
           end
         end
       end

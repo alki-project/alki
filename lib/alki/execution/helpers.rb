@@ -10,7 +10,11 @@ module Alki
           end
           elem.to_s.split('.').inject(group) do |group,name|
             raise "Invalid lookup elem" unless group.is_a? Helpers
-            group.send name.to_sym
+            if name =~ /^\d/
+              group[name.to_i]
+            else
+              group.send name.to_sym
+            end
           end
         end
       end

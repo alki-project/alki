@@ -7,13 +7,11 @@ Alki do
   end
 
   factory :build_service do
-    -> (klass, grp=nil) {
+    -> (klass, grp=nil, args=[]) {
       klass = Alki.load klass
       grp ||= parent
-      args = if klass.respond_to? :uses
-        klass.uses.map {|path| grp.lookup path }
-      else
-        []
+      if klass.respond_to? :uses
+        args += klass.uses.map {|path| grp.lookup path }
       end
       klass.new *args
     }

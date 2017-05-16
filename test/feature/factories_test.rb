@@ -36,13 +36,31 @@ describe 'Factories' do
     proc_counter.must_equal 2
   end
 
-  it 'should return Proc of factory if no arguments are provided when referenced' do
-    assembly do
-      factory :test do
-        -> (val) { val + 1 }
+  describe 'if no arguments are provided' do
+    before do
+      assembly do
+        factory :test do
+          -> (val) { val + 1 }
+        end
       end
     end
-    proc = obj.test
-    proc.call(1).must_equal 2
+
+    def just_yield(*args)
+      yield *args
+    end
+
+    it 'should return object with call methods' do
+      obj.test.call(1).must_equal 2
+      obj.test[1].must_equal 2
+      obj.test.(1).must_equal 2
+    end
+
+    it 'should return object with #new method' do
+      obj.test.new(1).must_equal 2
+    end
+
+    it 'should return object that is convertible to a proc' do
+      just_yield(1,&obj.test).must_equal 2
+    end
   end
 end

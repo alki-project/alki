@@ -1,4 +1,6 @@
 Alki do
+  use 'example/dsls/num_handler'
+
   factory :num_handler do
     require 'num_handler'
     -> (num,str) {
@@ -6,9 +8,7 @@ Alki do
     }
   end
 
-  service :fizz do
-    num_handler 3, settings.fizz
-  end
+  num_handler :fizz, 3
 
   service :buzz do
     num_handler 5, settings.buzz

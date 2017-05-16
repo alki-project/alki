@@ -1,6 +1,20 @@
 require 'alki/feature_test'
 
 describe 'Tags' do
+  it 'should allow accessing tags in services' do
+    assembly = Alki.create_assembly do
+      tag :tag1, tag2: false
+      group :grp do
+        tag :tag2, tag3: :value
+        service :svc1 do
+          meta[:tags]
+        end
+      end
+    end
+    obj = assembly.new
+    obj.grp.svc1.must_equal tag1: true, tag2: true, tag3: :value
+  end
+
   it 'should allow setting overlays via tags' do
     assembly = Alki.create_assembly do
       tag :tag1, :tag2

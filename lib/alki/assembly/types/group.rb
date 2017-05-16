@@ -1,4 +1,5 @@
 Alki do
+  require 'ostruct'
   require 'alki/execution/helpers'
 
   attr(:children){ {} }
@@ -8,9 +9,9 @@ Alki do
 
     data[:tags] ||= {}
     data[:tags] = data[:tags].inject({}) do |tags,(tag,tagged)|
-      tagged.each do |path|
+      tagged.each do |path,value|
         if path.empty? || path[0] == key.to_sym
-          tags[tag] = (tags[tag]||[]) | [path[1..-1]]
+          (tags[tag]||={})[(path[1..-1]||[])] = value
         end
       end
       tags
@@ -22,8 +23,8 @@ Alki do
       if target.size == 1 && target[0].to_s.start_with?('%')
         tags = data[:tags][target[0].to_s[1..-1].to_sym]
         if tags
-          tags.each do |target|
-            (no[target]||=[]).push *overlays
+          tags.keys.each do |path|
+            (no[path]||=[]).push *overlays
           end
         end
       elsif target.empty? || target.shift == key.to_sym
@@ -46,7 +47,7 @@ Alki do
       methods: {
         children: -> {
           children_names
-        }
+        },
       },
       proc: ->{self}
     }

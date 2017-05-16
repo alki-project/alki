@@ -6,6 +6,10 @@ Alki do
   init do
     ctx[:root] = build(:group,{})
     ctx[:meta] = []
+    @addons = Array ctx[:addons]
+    @addons.each do |addon|
+      require_dsl addon
+    end
   end
 
   helper :add do |name,elem|
@@ -25,7 +29,7 @@ Alki do
     Alki.load("alki/assembly/meta/#{type}").new *args
   end
 
-  dsl_method :add_overlay do |type,target,overlay,args|
+  helper :add_overlay do |type,target,overlay,args|
     (ctx[:meta]||=[]) << [
       [],
       build_meta(
@@ -48,11 +52,21 @@ Alki do
     ctx[:meta].push *prefix_meta(*prefix,meta)
   end
 
-  dsl_method :tag do |*tags|
+  dsl_method :use do |addon_name|
+    addon = Alki.load addon_name
+    if addon.respond_to?(:alki_addon)
+      addon = addon.alki_addon
+    end
+    require_dsl addon
+    @addons << addon
+  end
+
+  dsl_method :tag do |*tags,**value_tags|
     unless tags.all?{|t| t.is_a? Symbol }
       raise "Tags must be symbols"
     end
-    @tags = tags
+    tags.each {|tag| value_tags[tag] = true }
+    @tags = value_tags
   end
 
   dsl_method :config_dir do

@@ -135,9 +135,9 @@ Alki do
     update_meta name, mounted_meta
 
     overrides = Alki::OverrideBuilder.build overrides, &blk
-    update_meta name, overrides[:meta]
+    update_meta name, overrides.meta
 
-    add name, build(:assembly, klass.root, overrides[:root])
+    add name, build(:assembly, klass.root, overrides.root)
   end
 
   dsl_method :reference_overlay do |target,overlay,*args|

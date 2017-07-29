@@ -1,35 +1,11 @@
-require 'alki/override_builder'
 require 'alki/assembly/instance'
-require 'alki/assembly/executor'
-require 'alki/assembly/meta/overlay'
-require 'alki/overlay_info'
-require 'ice_nine'
+require 'alki/override_builder'
 
 module Alki
   module Assembly
-    def new(overrides={},&blk)
-      Instance.new load_class, [overrides, blk]
-    end
-
-    def raw_instance(overrides,blk,&wrapper)
-      overrides_info = OverrideBuilder.build(overrides,&blk)
-      override_root = overrides_info[:root] || build(:group)
-
-      assembly = build :assembly, root, override_root
-      update_instance_overlay = [[],Meta::Overlay.new(
-        :value,
-        [:assembly_instance],
-        ->obj{wrapper.call obj},
-        []
-      )]
-      all_meta = meta+overrides_info[:meta]+[update_instance_overlay]
-      IceNine.deep_freeze all_meta
-      executor = Executor.new(assembly, all_meta)
-
-      override_root.children[:assembly_instance] = build(:service,->{ root })
-      override_root.children[:assembly_executor] = build(:value,executor)
-
-      executor.call [:assembly_instance]
+    def new(override_values={},&override_blk)
+      overrides = OverrideBuilder.build override_values, &override_blk
+      Instance.new load_class, overrides
     end
 
     def root
@@ -38,12 +14,6 @@ module Alki
 
     def meta
       self.definition.meta
-    end
-
-    private
-
-    def build(type,*args)
-      Alki.load("alki/assembly/types/#{type}").new *args
     end
   end
 end

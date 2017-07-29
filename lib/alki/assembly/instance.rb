@@ -1,14 +1,14 @@
 require 'delegate'
 require 'concurrent'
 require 'alki/support'
-require 'concurrent'
+require 'alki/assembly/instance_builder'
 
 module Alki
   module Assembly
     class Instance < Delegator
-      def initialize(assembly_module,args)
+      def initialize(assembly_module,overrides)
         @assembly_module = assembly_module
-        @args = args
+        @overrides = overrides
         @version = 0
         @needs_load = true
         @lock = Concurrent::ReentrantReadWriteLock.new
@@ -45,8 +45,8 @@ module Alki
         @lock.with_write_lock do
           @needs_load = false
           @obj.__unload__ if @obj.respond_to?(:__unload__)
-          Alki.load(@assembly_module).raw_instance *@args do |obj|
-            @obj = obj
+          InstanceBuilder.build @assembly_module, @overrides do |instance|
+            @obj = instance
             self
           end
         end

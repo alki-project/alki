@@ -4,10 +4,10 @@ Alki do
   attr :block
 
   output do
-    overlays = (data[:overlays][[]]||[]).sort_by(&:order).group_by(&:type)
-    value_overlays = overlays[:value]||[]
-    reference_overlays = overlays[:reference]||[]
-    tags = data[:tags].inject({}){|tags,(tag,tagged)| tags[tag] = tagged[[]]; tags}
+    overlays = data[:overlays]&.overlays || []
+    value_overlays = overlays[:value] || []
+    reference_overlays = overlays[:reference] || []
+    tags = data[:tags]&.tags || {}
     methods = {
       __build__: block,
       __apply_overlays__: -> obj, overlays {

@@ -1,5 +1,6 @@
 require 'alki/invalid_path_error'
 require 'alki/overlay_info'
+require 'alki/execution/overlay_map'
 
 module Alki
   module Assembly
@@ -14,7 +15,8 @@ module Alki
 
         def process(executor,from,data)
           data[:total_overlays] ||= 0
-          data[:overlays]||={}
+          data[:overlays] ||= Execution::OverlayMap.new
+
           target_path = @target.dup
           if target_path.last.to_s.start_with?('%')
             tag = target_path.pop
@@ -31,7 +33,8 @@ module Alki
               raise InvalidPathError.new("Invalid overlay path #{@overlay.join('.')}")
           end
           order = data[:total_overlays]
-          (data[:overlays][target]||=[]) << OverlayInfo.new(order,@type, overlay, @args)
+
+          data[:overlays].add target, OverlayInfo.new(order,@type, overlay, @args)
           data[:total_overlays] += 1
         end
       end

@@ -1,3 +1,5 @@
+require 'alki/execution/tag_map'
+
 module Alki
   module Assembly
     module Meta
@@ -7,10 +9,8 @@ module Alki
         end
 
         def process(_executor,from,data)
-          data[:tags]||={}
-          @tags.each do |tag,value|
-            (data[:tags][tag.to_sym]||={})[from] = value
-          end
+          data[:tags]||=Execution::TagMap.new
+          data[:tags].add from, @tags
         end
       end
     end

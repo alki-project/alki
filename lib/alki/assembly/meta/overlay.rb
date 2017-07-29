@@ -24,8 +24,10 @@ module Alki
           if target_path == []
             target_path = [:root]
           end
+
           target = executor.canonical_path(from,target_path) or
             raise InvalidPathError.new("Invalid overlay target #{@target.join('.')}")
+
           target = target.dup.push tag if tag
           overlay = @overlay
           if overlay.is_a?(Array)

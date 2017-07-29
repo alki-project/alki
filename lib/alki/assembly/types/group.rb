@@ -1,5 +1,4 @@
 Alki do
-  require 'ostruct'
   require 'alki/execution/helpers'
 
   attr(:children){ {} }

@@ -4,6 +4,30 @@ require 'concurrent'
 require 'alki/invalid_path_error'
 
 module Alki
+  class CircularReferenceError < RuntimeError
+    attr_reader :chain
+
+    def initialize
+      @chain = []
+      super
+    end
+
+    def to_s
+      "Circular Alki element reference:\n#{formatted_chain}"
+    end
+
+    def formatted_chain
+      chain.reverse.map do |path|
+        p = path.join('.')
+        if path == chain[0]
+          "> #{p}"
+        else
+          "  #{p}"
+        end
+      end.join("\n")
+    end
+  end
+
   module Assembly
     class Executor
       def initialize(assembly,meta)
@@ -55,7 +79,7 @@ module Alki
           cache_entry = @call_cache[path]
           if cache_entry
             if cache_entry == :building
-              raise "Circular element reference found: #{path.join(".")}"
+              raise Alki::CircularReferenceError.new
             end
             type,value = cache_entry.type,cache_entry.value
           else
@@ -67,6 +91,9 @@ module Alki
           end
         end
         call_value(type, value, meta, args, blk)
+      rescue Alki::CircularReferenceError => e
+        e.chain << path
+        raise
       end
 
       private

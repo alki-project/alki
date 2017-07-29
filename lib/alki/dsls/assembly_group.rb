@@ -108,9 +108,9 @@ Alki do
         elems = path[dir.size..-1].chomp('.rb').split('/')
         *parents,basename = elems
         parent_group = parents.inject(grp) do |grp,parent|
-          grp.children[parent] ||= build(:group)
+          grp.children[parent.to_sym] ||= build(:group)
         end
-        parent_group.children[basename] = build :service,-> {
+        parent_group.children[basename.to_sym] = build :service,-> {
           lookup(callable).call require_path, *args
         }
       end
@@ -123,8 +123,8 @@ Alki do
       raise "Load command is not available without a config directory"
     end
     grp = Alki.load(File.join(ctx[:prefix],name))
-    add name, grp.root
-    update_meta name, grp.meta
+    add group_name, grp.root
+    update_meta group_name, grp.meta
   end
 
   dsl_method :mount do |name,pkg=name.to_s,**overrides,&blk|

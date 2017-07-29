@@ -7,7 +7,12 @@ Alki do
   factory :log_overlay do
     require 'log_overlay'
     -> (obj) {
-      alki.delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
+      # Don't overlay services in subgroups (names with multiple periods)
+      if meta[:building] =~ /\..*\./
+        obj
+      else
+        alki.delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
+      end
     }
   end
 

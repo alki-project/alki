@@ -6,8 +6,8 @@ Alki do
   init do
     ctx[:root] = build(:group,{})
     ctx[:meta] = []
-    @addons = Array ctx[:addons]
-    @addons.each do |addon|
+    ctx[:addons] ||= []
+    ctx[:addons].each do |addon|
       require_dsl addon
     end
   end
@@ -58,7 +58,7 @@ Alki do
       addon = addon.alki_addon
     end
     require_dsl addon
-    @addons << addon
+    ctx[:addons] << addon
   end
 
   dsl_method :tag do |*tags,**value_tags|
@@ -94,7 +94,7 @@ Alki do
   end
 
   dsl_method :group do |name,&blk|
-    grp = Alki::Dsls::AssemblyGroup.build(&blk)
+    grp = Alki::Dsls::AssemblyGroup.build(addons: ctx[:addons], &blk)
     add name, grp[:root]
     update_meta name, grp[:meta]
   end

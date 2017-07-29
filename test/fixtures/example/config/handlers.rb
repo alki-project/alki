@@ -10,8 +10,13 @@ Alki do
 
   num_handler :fizz, 3
 
+
+  group :handlers do
+    num_handler :buzz, 5
+  end
+
   service :buzz do
-    num_handler 5, settings.buzz
+    handlers.buzz
   end
 
   service :fizzbuzz do

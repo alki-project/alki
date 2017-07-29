@@ -30,6 +30,16 @@ Alki do
         children: -> {
           children_names
         },
+        elements: -> {
+          children.inject([]) do |elems, child_name|
+            child = send(child_name)
+            if child.respond_to?(:elements)
+              elems.push *child.elements
+            else
+              elems.push child
+            end
+          end
+        }
       },
       proc: ->{self}
     }

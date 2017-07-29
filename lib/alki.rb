@@ -13,3 +13,6 @@ def Alki.create_assembly(opts={},&blk)
   Alki::Assembly::Builder.build(opts,&blk)
 end
 
+def Alki.singleton_assembly(opts={},&blk)
+  Alki.create_assembly(opts,&blk).new
+end

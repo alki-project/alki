@@ -13,7 +13,7 @@ module Alki
         else
           methods = {}
         end
-        (config[:scope]||{}).each do |name,path|
+        (config[:lookup_methods]||config[:scope]||{}).each do |name,path|
           methods[name] = {
             body:->(*args,&blk) {
                __execute__ path, args, blk

@@ -41,9 +41,8 @@ Alki do
 
     output = root.output(data)
     add_parent_path output[:scope]
-    update_scope data, output[:full_scope]
+    update_scope data, output[:scope]
     output[:scope].merge! overrides.output(data)[:scope] if overrides
-    output[:full_scope].merge! overrides.output(data)[:full_scope] if overrides
     output
   end
 

@@ -66,7 +66,7 @@ module Alki
 
       def canonical_path(from,path)
         from_elem = lookup(from)
-        scope = from_elem[:full_scope] || from_elem[:scope]
+        scope = from_elem[:scope]
         path.inject(nil) do |p,elem|
           scope = lookup(p)[:scope] if p
           scope[elem]

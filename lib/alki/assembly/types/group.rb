@@ -23,8 +23,8 @@ Alki do
   output do
     children_names = children.keys.map(&:to_sym)
     {
-      full_scope: update_scope(children, data[:prefix], data[:scope]),
-      scope: update_scope(children,data[:prefix]),
+      lookup_methods: update_scope(children,data[:prefix]),
+      scope: update_scope(children, data[:prefix], data[:scope]),
       modules: [Alki::Execution::Helpers],
       methods: {
         children: -> {

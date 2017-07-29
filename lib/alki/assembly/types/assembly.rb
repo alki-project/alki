@@ -1,4 +1,5 @@
 require 'alki/assembly/types/override'
+require 'alki/assembly/types/original'
 
 Alki do
   attr :root
@@ -16,7 +17,7 @@ Alki do
           data[:scope][k] = data[:prefix] + [k]
         end
       end
-      root
+      Alki::Assembly::Types::Original.new root
     else
       if overrides
         data.replace(

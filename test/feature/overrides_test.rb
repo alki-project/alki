@@ -5,6 +5,10 @@ require 'stringio'
 describe 'Overrides' do
   before do
     @assembly = Alki.create_assembly do
+      set :val do
+        :value
+      end
+
       set :log_io do
         raise "Must set log_io"
       end
@@ -39,11 +43,32 @@ describe 'Overrides' do
       set :log_io, io
       group :util do
         service :logger do
-          logger_class.new original.log_io
+          logger_class.new log_io
         end
       end
     end
     instance.util.logger.info "test"
     io.string.must_equal "INFO test"
+  end
+
+  it 'should allow calling original when mounted' do
+    other = @assembly
+    instance = Alki.singleton_assembly do
+      mount :assembly, other do
+        set :val do
+          original.val
+        end
+      end
+    end
+    instance.assembly.val.must_equal :value
+  end
+
+  it 'should allow calling original service' do
+    instance = @assembly.new do
+      set :val do
+        original.val
+      end
+    end
+    instance.val.must_equal :value
   end
 end

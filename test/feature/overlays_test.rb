@@ -196,12 +196,12 @@ describe 'Overlays' do
         :test
       end
       mount :mounted, child do
-        overlay 'original.svc1', :test_overlay
+        overlay 'svc1', :test_overlay
         set :test_overlay, ->(value) {:parent}
       end
     end
     obj = assembly.new do
-      overlay 'original.svc2', :test_overlay
+      overlay 'svc2', :test_overlay
       set :test_overlay, ->(value) {:child}
     end
     obj.svc2.must_equal :child

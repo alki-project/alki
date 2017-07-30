@@ -4,9 +4,9 @@ Alki do
   attr :block
 
   output do
-    overlays = data[:overlays]&.overlays || []
-    value_overlays = overlays[:value] || []
-    reference_overlays = overlays[:reference] || []
+    all_overlays = data[:overlays]&.overlays || []
+    value_overlays = all_overlays[:value] || []
+    reference_overlays = all_overlays[:reference] || []
     tags = data[:tags]&.tags || {}
     methods = {
       __build__: block,

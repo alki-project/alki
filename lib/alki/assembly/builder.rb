@@ -46,8 +46,8 @@ module Alki
 
       def setup_project_assembly(path)
         root = Alki::Support.find_root(path) do |dir|
-          File.exists?(File.join(dir,'config',"#{@primary_config}.rb")) ||
-            File.exists?(File.join(dir,'Gemfile')) ||
+          File.exist?(File.join(dir,'config',"#{@primary_config}.rb")) ||
+            File.exist?(File.join(dir,'Gemfile')) ||
             !Dir.glob(File.join(dir,'*.gemspec')).empty?
         end
         if root
@@ -62,7 +62,7 @@ module Alki
 
           unless @config_dir
             config_dir = File.join(root,'config')
-            @config_dir = config_dir if File.exists? config_dir
+            @config_dir = config_dir if File.exist? config_dir
           end
         end
       end

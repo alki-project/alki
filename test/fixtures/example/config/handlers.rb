@@ -2,9 +2,9 @@ Alki do
   use 'example/dsls/num_handler'
 
   factory :num_handler do
-    require 'num_handler'
+    require 'example/num_handler'
     -> (num,str) {
-      NumHandler.new(num, str, output)
+      Example::NumHandler.new(num, str, output)
     }
   end
 
@@ -24,7 +24,7 @@ Alki do
   end
 
   service :echo do
-    require 'echo_handler'
-    EchoHandler.new output
+    require 'example/echo_handler'
+    Example::EchoHandler.new output
   end
 end

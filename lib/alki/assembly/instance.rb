@@ -12,6 +12,7 @@ module Alki
         @version = 0
         @needs_load = true
         @lock = Concurrent::ReentrantReadWriteLock.new
+        @obj = nil
       end
 
       def __reload__

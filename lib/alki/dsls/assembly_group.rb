@@ -13,7 +13,7 @@ Alki do
   end
 
   helper :add do |name,elem|
-    if @tags
+    if defined?(@tags) && @tags
       ctx[:meta] << [[name.to_sym],build_meta(:tags,@tags)]
       @tags = nil
     end
@@ -107,8 +107,8 @@ Alki do
       if require_path
         elems = path[dir.size..-1].chomp('.rb').split('/')
         *parents,basename = elems
-        parent_group = parents.inject(grp) do |grp,parent|
-          grp.children[parent.to_sym] ||= build(:group)
+        parent_group = parents.inject(grp) do |group,parent|
+          group.children[parent.to_sym] ||= build(:group)
         end
         parent_group.children[basename.to_sym] = build :service,-> {
           lookup(callable).call require_path, *args

@@ -5,13 +5,17 @@ Alki do
   load :handlers
 
   factory :log_overlay do
-    require 'log_overlay'
+    require 'example/log_overlay'
     -> (obj) {
       # Don't overlay services in subgroups (names with multiple periods)
       if meta[:building] =~ /\..*\./
         obj
       else
-        alki.delegate_overlay obj, LogOverlay.new(log), name: meta[:building]
+        alki.delegate_overlay(
+          obj,
+          Example::LogOverlay.new(log),
+          name: meta[:building]
+        )
       end
     }
   end
@@ -19,8 +23,8 @@ Alki do
   overlay :handlers, :log_overlay
 
   service :handler do
-    require 'switch_handler'
-    SwitchHandler.new [
+    require 'example/switch_handler'
+    Example::SwitchHandler.new [
                         handlers.fizzbuzz,
                         handlers.fizz,
                         handlers.buzz,
@@ -33,13 +37,13 @@ Alki do
   end
 
   service :range_handler do
-    require 'range_handler'
-    RangeHandler.new lazy('handler')
+    require 'example/range_handler'
+    Example::RangeHandler.new lazy('handler')
   end
 
   service :output do
-    require 'array_output'
-    ArrayOutput.new
+    require 'example/array_output'
+    Example::ArrayOutput.new
   end
 
   service :log_io do

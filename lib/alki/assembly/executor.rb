@@ -37,6 +37,7 @@ module Alki
         @lookup_cache = {}
         @call_cache = {}
         @context_cache = {}
+        @data = nil
       end
 
       def lock

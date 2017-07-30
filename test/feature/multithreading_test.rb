@@ -23,9 +23,6 @@ describe 'Multithreading' do
     sleep 0.1
     thread2.alive?.must_equal true
     e.set
-    sleep 0.1
-    thread2.alive?.must_equal false
-
     thread.join
     thread2.join
   end

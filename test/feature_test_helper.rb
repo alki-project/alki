@@ -27,6 +27,7 @@ class Minitest::Spec
     undefine :Example, false
     undefine :Tlogger, false
     undefine :AutoGroupTest, false
+    undefine :AlkiTest, false
   end
 
   def undefine(sym,force=true)

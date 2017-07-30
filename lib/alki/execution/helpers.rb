@@ -4,11 +4,11 @@ module Alki
   module Execution
     module Helpers
       def lookup(*path)
-        path.flatten.inject(self) do |group,elem|
+        path.flatten.inject(self) do |from_group,elem|
           unless elem.is_a?(String) or elem.is_a?(Symbol)
             raise ArgumentError.new("lookup can only take Strings or Symbols")
           end
-          elem.to_s.split('.').inject(group) do |group,name|
+          elem.to_s.split('.').inject(from_group) do |group,name|
             raise "Invalid lookup elem" unless group.is_a? Helpers
             if name =~ /^\d/
               group[name.to_i]
@@ -20,11 +20,11 @@ module Alki
       end
 
       def lazy(*path)
-        path = path.flatten.inject('') do |path,elem|
+        path = path.flatten.inject('') do |new_path,elem|
           unless elem.is_a?(String) or elem.is_a?(Symbol)
             raise ArgumentError.new("lookup can only take Strings or Symbols")
           end
-          path << elem.to_s
+          new_path << elem.to_s
         end
         Alki::ServiceDelegator.new self, path
       end

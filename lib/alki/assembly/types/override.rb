@@ -1,5 +1,3 @@
-require 'alki/assembly/types/override'
-
 Alki do
   attr :main
   attr :override

@@ -140,6 +140,14 @@ Alki do
     add name, build(:assembly, klass.root, overrides.root)
   end
 
+  dsl_method :try_mount do |name,pkg=name.to_s,**overrides,&blk|
+    begin
+      mount name,pkg,overrides,&blk
+    rescue LoadError
+      nil
+    end
+  end
+
   dsl_method :reference_overlay do |target,overlay,*args|
     add_overlay :reference, target, overlay, args
   end

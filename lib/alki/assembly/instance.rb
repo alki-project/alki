@@ -13,6 +13,7 @@ module Alki
         @needs_load = true
         @lock = Concurrent::ReentrantReadWriteLock.new
         @obj = nil
+        @executor = nil
       end
 
       def __reload__
@@ -32,6 +33,13 @@ module Alki
         end
       end
 
+      def __executor__
+        @lock.with_read_lock do
+          __load__ if @needs_load
+          @executor
+        end
+      end
+
       def __getobj__
         @lock.with_read_lock do
           __load__ if @needs_load
@@ -42,12 +50,12 @@ module Alki
       private
 
       def __load__
-        # Calls __setobj__
         @lock.with_write_lock do
           @needs_load = false
           @obj.__unload__ if @obj.respond_to?(:__unload__)
-          InstanceBuilder.build @assembly_module, @overrides do |instance|
+          InstanceBuilder.build @assembly_module, @overrides do |instance,executor|
             @obj = instance
+            @executor = executor
             self
           end
         end

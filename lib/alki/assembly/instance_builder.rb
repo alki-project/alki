@@ -1,5 +1,5 @@
 require 'alki/assembly/types'
-require 'alki/assembly/executor'
+require 'alki/executor'
 require 'alki/override_builder'
 require 'alki/assembly/meta/overlay'
 require 'alki/overrides'
@@ -11,24 +11,22 @@ module Alki
       class << self
         def build(assembly,overrides,&instance_wrapper)
           assembly = Alki.load(assembly)
+          executor = Executor.new
 
-          overrides = inject_assembly_instance overrides, instance_wrapper
+          overrides = inject_assembly_instance overrides, instance_wrapper, executor
 
-          root = Types.build :assembly, assembly.root, overrides.root
-          meta = assembly.meta+overrides.meta
-
-          IceNine.deep_freeze meta
-          executor = Executor.new(root, meta)
+          executor.root = Types.build :assembly, assembly.root, overrides.root
+          executor.meta = IceNine.deep_freeze(assembly.meta+overrides.meta)
 
           executor.call [:assembly_instance]
         end
 
         private
-
-        def inject_assembly_instance(overrides,wrapper)
+        
+        def inject_assembly_instance(overrides,instance_wrapper,executor)
           root = overrides.root.dup
           root.children = root.children.merge(assembly_instance: assembly_instance)
-          meta = overrides.meta + [wrap_assembly_instance(wrapper)]
+          meta = overrides.meta + [wrap_assembly_instance(instance_wrapper,executor)]
           Overrides.new(root,meta)
         end
 
@@ -36,11 +34,11 @@ module Alki
           Types.build(:service,-> { root })
         end
 
-        def wrap_assembly_instance(wrapper)
+        def wrap_assembly_instance(wrapper,executor)
           [[],Meta::Overlay.new(
             :value,
             [:assembly_instance],
-            -> obj { wrapper.call obj },
+            -> obj { wrapper.call obj, executor },
             []
           )]
         end

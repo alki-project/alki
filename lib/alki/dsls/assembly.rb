@@ -7,7 +7,7 @@ Alki do
     add :config_dir, build(:value, ctx[:config_dir])
     add :assembly_name, build(:value, ctx[:assembly_name])
 
-    root = IceNine.deep_freeze ctx[:root]
+    root = ctx[:root]
     meta = IceNine.deep_freeze ctx[:meta]
     add_class_method :root do
       root

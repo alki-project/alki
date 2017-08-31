@@ -47,6 +47,22 @@ module Alki
         end
       end
 
+      def to_s
+        inspect
+      end
+
+      def inspect
+        if @assembly_module.is_a?(Module)
+          name = @assembly_module.name || 'AnonymousAssembly'
+        else
+          name = Alki::Support.classify(@assembly_module.to_s)
+        end
+        "#<#{name}:#{object_id}>"
+      end
+
+      def pretty_print(q)
+        q.text(inspect)
+      end
       private
 
       def __load__

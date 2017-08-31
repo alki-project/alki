@@ -17,7 +17,7 @@ Project Assemblies
 Most of the time, a project will have a single assembly, so Alki makes having a single project wide
 assembly especially easy.
 
-First. in your project's `lib` directory create a ruby file for your assembly. If your assembly is
+First, in your project's `lib` directory create a ruby file for your assembly. If your assembly is
 to be called `MyAssembly`, create `lib/my_assembly.rb`. If it's namespaced put it in a subdirectory
 as usual (i.e. `MyModule::MyAssembly` would go in `lib/my_module/my_assembly.rb`).
 
@@ -126,7 +126,6 @@ The limitiation of this is that it can only override basic values. To override m
 a block can be given to `new` allowing the full assembly DSL.
 
 ```ruby
-require 'alki'
 class MyLogger
   def initialize(io)
     @io = io

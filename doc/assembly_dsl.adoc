@@ -2,7 +2,7 @@ Assembly DSL
 ============
 :toc:
 
-Building Assemblies is done via a DSL that makes putting together the pieces of your project easy.
+Building Assemblies is done via a small DSL
 
 Groups (group)
 --------------
@@ -23,8 +23,7 @@ puts assembly.new.sub_group.val
 #output: hello world
 ```
 
-Scoping is also done by group, so that an element will be found by searching through parent groups until
-it is found.
+Scoping is also done by group, so that an element will be found by searching through parent groups.
 
 ```ruby
 require 'alki'
@@ -213,8 +212,7 @@ puts assembly.new.greet "Matt"
 
 Services are the key element Assemblies are typically made up of. Like the block form of `set`,
 `service` takes a name and block, which will be evaluated once on-demand and the result cached.
-One difference between the block form of `set` and `service` is that services are affected
-by overlays, whereas basic values are not.
+Whereas `set` is a lightweight element for simple values, `service` provides more functionality.
 
 Commonly a service will require the file that defines a class, and then constructs an instance of
 that class.
@@ -235,9 +233,13 @@ assembly.new.logger << "hello\n"
 ### Factories (factory)
 
 Factories are a mix between services and funcs. Like services, they take a block which is evaluated
-once. Unlike services though, that block must return a callable object (like a Proc). This object
-is then called directly when the factory is referenced. This allows you to require files or construct
-a factory object once but still run code on every reference.
+once. Unlike services though, that block must return a callable "builder" (like a Proc).
+
+If a factory is referenced as a service (i.e. no arguments) it returns a factory object
+that responds to either `#call` or `#new` and will call the builder in turn.
+
+If a factory is instead referenced like a method (i.e. with arguments) it will
+call the builder directly.
 
 ```ruby
 require 'alki'
@@ -249,6 +251,8 @@ assembly = Alki.create_assembly do
 
   service :main_logger do
     logger STDOUT
+    # -or-
+    logger.call STDOUT
   end
 end
 assembly.new.main_logger << "hello\n"
@@ -256,29 +260,23 @@ assembly.new.main_logger << "hello\n"
 #output: hello
 ```
 
-## Overlays (overlay)
-
-Overlays are a way to intercept and transform calls made to all services in a given group or it's
-sub-groups.
-
-Overlays are often most useful in groups where all services adhere to a common interface, and overlays
-can be used to perform aspect oriented programming like logging, validation, or access controls.
-
 
 ## Mounting Assemblies (mount)
 
 Other assemblies can be mounted into your Assembly using the `mount` command.
 
-The first argument is what the element should be named in the parent assembly. The optional second argument
-is the name of the assembly to be mounted. This should be formatted like a require string (relative path but
-no `.rb`) and will default to the value of the first argument. If a classified version of that name
-can't be found, Alki will attempt to `require` it, and then look for it again.
+The first argument is what the element should be named in the parent assembly.
+The optional second argument is the assembly to be mounted.
+This can either be the assembly module,
+or be a "require" string (relative path but no `.rb`).
+It defaults to the element name.
+If a string, Alki will attempt to `require` it, and then look for a matching constant.
+
 
 ```ruby
 require 'alki'
 
-# Creates OtherAssembly
-Alki.create_assembly name: 'other_assembly' do
+other_assembly = Alki.create_assembly do
   set :val, "one"
 
   # This is invalid as there is no such element as 'val2'
@@ -293,12 +291,11 @@ Alki.create_assembly name: 'other_assembly' do
   end
 end
 
-Alki.create_assembly name: 'main_assembly' do
+assembly = Alki.create_assembly do
   set :val2, "two"
-  # Mounts OtherAssembly as 'other'
-  mount :other, 'other_assembly'
+  mount :other, other_assembly
 end
-instance = MainAssembly.new
+instance = assembly.new
 puts instance.other.val
 #output: one
 
@@ -322,22 +319,186 @@ automatically in scope for overrides.
 
 ```ruby
 require 'alki'
-Alki.create_assembly name: 'other_assembly' do
+other_assembly = Alki.create_assembly do
   set :msg, nil
   func :print do
     puts msg
   end
 end
 
-Alki.create_assembly name: 'main_assembly' do
+assembly = Alki.create_assembly do
   set :val, "hello"
-  mount :other, 'other_assembly' do
+  mount :other, other_assembly do
     set :msg do
       val
     end
   end
 end
-MainAssembly.new.other.print
+assembly.new.other.print
 
 #output: hello
+```
+
+## Overlays and Tags
+
+Overlays are a way to transparently wrap services. They work by taking the
+name of a service or a group, in which case they are applied to all services in that group,
+along with the name of an element to be used as the overlay, plus some optional arguments.
+
+When the named service is built, the overlay element will be called (with `.call`), with
+the built service object and the optional arguments, and it's result will be what's
+returned.
+
+Factories work well as overlay elements.
+
+```ruby
+require 'alki'
+
+assembly = Alki.create_assembly do
+  overlay :greeting, :exclaim, 3
+
+  service :greeting do
+    'Hello World'
+  end
+
+  factory :exclaim do
+    -> (string,count) do
+      string + ('!' * count)
+    end
+  end
+end
+
+puts assembly.new.greeting
+
+#output: Hello World!!!
+```
+
+### Tags (tag)
+
+Tags are way of adding metadata to your elements. They can either be just a name, or
+optionally carry a value
+
+```ruby
+require 'alki'
+
+assembly = Alki.create_assembly do
+  tag :tag1, with_value: 123
+  service :tagged do
+    meta[:tags]
+  end
+end
+
+puts assembly.new.tagged
+
+#output: {:with_value=>123, :tag1=>true}
+```
+
+Tags can be applied to groups to tag everything within that group
+
+```ruby
+require 'alki'
+
+assembly = Alki.create_assembly do
+  tag :tag1
+  group :grp do
+    tag :tag2
+    service :tagged do
+      meta[:tags]
+    end
+  end
+end
+
+puts assembly.new.grp.tagged
+
+#output: {:tag1=>true, :tag2=>true}
+```
+
+#### Overlaying tags (overlay_tag)
+
+Instead of overlaying services directly, it's often useful to overlay all services
+with a given tag.
+
+```ruby
+require 'alki'
+
+assembly = Alki.create_assembly do
+  overlay_tag :exclaimed, :exclaim, 3
+
+  tag :exclaimed
+  service :greeting do
+    'Hello World'
+  end
+
+  factory :exclaim do
+    -> (string,count) do
+      string + ('!' * count)
+    end
+  end
+end
+
+puts assembly.new.greeting
+
+#output: Hello World!!!
+```
+
+Factories can access the tags of the services their being called from, allowing you
+to customize the build based on what tags are present
+
+```ruby
+require 'alki'
+
+assembly = Alki.create_assembly do
+  overlay_tag :process, :process_string
+
+  tag :process, exclaim: 3
+  service :greeting do
+    'Hello World'
+  end
+
+  factory :process_string do
+    -> (string) do
+      if exclaim = meta[:tags][:exclaim]
+        string = string + ('!' * exclaim)
+      end
+      string
+    end
+  end
+end
+
+puts assembly.new.greeting
+
+#output: Hello World!!!
+```
+
+Finally, tag overlays work even across assembly mounts, allowing overlays to
+be defined in a library, and then applied by tagging services.
+
+```ruby
+require 'alki'
+
+string_processor = Alki.create_assembly do
+  overlay_tag :process, :process_string
+
+  factory :process_string do
+    -> (string) do
+      if exclaim = meta[:tags][:exclaim]
+        string = string + ('!' * exclaim)
+      end
+      string
+    end
+  end
+end
+
+assembly = Alki.create_assembly do
+  mount :string_processor, string_processor
+
+  tag :process, exclaim: 3
+  service :greeting do
+    'Hello World'
+  end
+end
+
+puts assembly.new.greeting
+
+#output: Hello World!!!
 ```

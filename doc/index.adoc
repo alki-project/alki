@@ -7,10 +7,11 @@ Alki is a framework for creating projects that are modular, testable, and well o
 It's goal is to remove uncertainty and friction when building Ruby projects, allowing developers to focus on implementing business logic.
 
 :leveloffset: 1
-include::projects.adoc[]
-
-:leveloffset: 1
 include::assemblies.adoc[]
 
 :leveloffset: 1
 include::assembly_dsl.adoc[]
+
+:leveloffset: 1
+include::executables.adoc[]
+

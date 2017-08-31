@@ -1,36 +1,48 @@
-Setting up Alki Projects
-========================
+Creating Executables
+====================
 :toc:
 
-Generally, projects that use alki work the same as normal Ruby projects but there are a couple of
-guidelines to make life easier.
-
-Alki projects should always use Bundler and have a `Gemfile` in the project root. It is also optional
-that the project itself be a gem, with a `<project name>.gemspec` file in the project root and a `gemspec`
-line in the `Gemfile`.
+Generally, projects that use alki are setup the same as normal Ruby projects but there are a couple of
+few differences plus some common conventions.
 
 
-Using Alki without a gemspec
-----------------------------
+Without a gemspec
+-----------------
 
 If your project isn't a gem, and doesn't have a gemspec, executables should go in `bin` and should include these two
 lines before `require`-ing any other files.
 ```ruby
 require 'bundler/setup'
-require 'alki/bin`
+require 'alki/bin'
 ```
 
-After that you can require your library files and run them.
+After that you can use your library.
 
-Using Alki with a gemspec
--------------------------
+.bin/my_exe
+```ruby
+require 'bundler/setup'
+require 'alki/bin'
+
+require 'my_project'
+
+MyProject.new.cli.run
+```
+
+```
+$ bin/my_exe
+...
+```
+
+
+With a gemspec
+--------------
 
 If your project *is* a gem, you'll do things a bit differently.
 
 First, in your gemspec, set the `bindir` option to `'exe'` (not `'bin'`). Also if automatically setting
 the `executables` option, make sure it is looking for files in `exe`, not `bin`.
 
-As noted, executables should be placed in `exe`, not `bin`.
+Executables should be placed in `exe`, not `bin`.
 
 Finally, once your gemspec is setup, run `bundle binstubs <gem name>` where `<gem name>` is whatever
 you set `spec.name` to in your gemspec.
@@ -40,5 +52,17 @@ should run for testing/development. If you add new executables to `exe`, just ru
 generate new binstubs for them.
 
 Second, executables in `exe` shouldn't require any extra files other then the project files they need to
-run (no `bundle/setup` or `alki/bin`).
+run (**do not require `bundle/setup` or `alki/bin`**).
 
+.exe/my_exe
+```ruby
+require 'my_gem'
+
+MyGem.new.cli.run
+```
+
+```
+$ bundle binstubs my_gem
+$ bin/my_exe
+...
+```

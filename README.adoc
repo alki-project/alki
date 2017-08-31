@@ -1,34 +1,146 @@
 # What is Alki?
 
-Alki is a small framework for Ruby that provides a powerful dependency injection and program
-management system with helpers for testing, creating executables, and writing DSLs.
+Alki is a small library to help organize and scale your Ruby project, so you can focus on the
+important stuff. It can be used alongside frameworks such as Ruby on Rails.
 
-It's goal is to remove uncertainty and friction when building Ruby projects, allowing developers to focus on
-implementing business logic. It can be used alongside other frameworks such as Ruby on Rails.
+Some high level features:
 
-Alki tries to combine time tested software engineering concepts such as
-https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)[SOLID],
-and  https://en.wikipedia.org/wiki/Inversion_of_control[Inversion of Control], with
-Ruby style ease of use, DSLs, and
-https://en.wikipedia.org/wiki/Convention_over_configuration[Convention over Configuration].
+* Easily manage objects and dependencies
+* Enables writing reusable and testable code
+* Developer console (built on pry)
+* Automatic code reloading on changes in development
+* Powerful DSL toolkit
+* Extensible
 
-Further documentation can be found at https://github.com/alki-project/alki/blob/master/doc/index.adoc
 
-Example projects can be found at https://github.com/alki-project/alki-examples
+## Installation
 
-## Getting Started
+Add this line to your application's Gemfile:
 
-Install from rubygems
-
-    gem install alki
-
-Setting up Alki in your project requires only creating a couple of files, but the
-`alki` command line tool can also be used to automate the process. Project names
-should be given in lowercase using underscores and forward slashes as separators.
-
-.Example project
-```
-$ cd <project dir>
-$ alki init --addons console <project name>
+```ruby
+gem 'alki'
 ```
 
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install alki
+
+## Introduction
+
+[NOTE]
+Full "todo" example can be found https://github.com/alki-project/alki-examples/tree/master/todo[here]
+
+Alki simplifies project organization by pulling out all of the "connective tissue"
+that connects our classes and modules together, and puts them into a special object
+called an Assembly.
+
+There are many ways to use Assemblies, but the most common is to have a single
+Assembly for you project. For example, if you hade a "todo" command line utility
+project that you wanted to use Alki with, all you would need to do to create
+an Assembly is add this file.
+
+.lib/todo.rb
+```ruby
+require 'alki'
+Alki.project_assembly!
+```
+
+This will create a module called `Todo` that is an empty assembly:
+
+```
+$ bundle exec irb -Ilib
+2.4.0 :001 > require 'todo'
+ => true
+2.4.0 :002 > todo = Todo.new
+ => #<Todo:21964520>
+```
+
+### Defining Elements
+
+Add things to the assembly requires an assembly definition file. By convention this is
+named `config/assembly.rb` and is built using a simple DSL. There are
+a handful of different element types in Assemblies. Below are a few of the
+most common. Full documentation of the DSL can be found
+https://github.com/alki-project/alki/blob/master/doc/assembly_dsl.adoc[here]
+
+.config/assembly.rb
+```ruby
+Alki do
+  group :settings do <1>
+    set(:home) { ENV['HOME'] } <2>
+    set(:db_path) { ENV['TODO_DB_PATH'] || File.join(home,'.todo_db2') }
+    set :prompt, 'todo> '
+  end
+
+  service :interface do <3>
+    require 'todo/readline_interface'
+    Todo::ReadlineInterface.new settings.prompt, handler
+  end
+
+  service :handler do
+    require 'todo/command_handler'
+    Todo::CommandHandler.new db
+  end
+
+  service :db do
+    require 'todo/store_db'
+    Todo::StoreDb.new file_store
+  end
+
+  service :file_store do
+    require 'todo/json_file_store'
+    Todo::JsonFileStore.new settings.db_path
+  end
+end
+```
+<1> `group` allows bundling together subelements and can be moved to their own files
+<2> `set` defines simple values
+<3> `service` defines our main application objects
+
+Any element can be accessed directly from the assembly object.
+
+```
+$ bundle exec irb -Ilib
+2.4.0 :001 > require 'todo'
+ => true
+2.4.0 :002 > todo = Todo.new
+ => #<Todo:21964520>
+2.4.0 :003 > todo.settings.prompt
+ => 'todo> '
+```
+
+The 'alki-console' tool can also be used to quickly work with assemblies.
+Add `gem 'alki-console'` to your Gemspec and run `bundle --binstubs`.
+
+```
+$ bin/alki-console
+todo> settings.prompt
+=> 'todo> '
+```
+
+### Creating an executable
+
+Read more about creating executables with Alki
+https://github.com/alki-project/alki/blob/master/doc/executables.adoc[here]
+
+In the todo example, it's a CLI utility so it requires an executable.
+
+.exe/todo
+```ruby
+require 'todo'
+Todo.new.interface.run
+```
+
+## Further Documentation
+
+Further documentation can be found https://github.com/alki-project/alki/blob/master/doc/index.adoc[here]
+
+Example projects can be found https://github.com/alki-project/alki-examples[here]
+
+## Authors
+
+Written by Matt Edlefsen

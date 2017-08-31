@@ -151,8 +151,16 @@ Alki do
   dsl_method :reference_overlay do |target,overlay,*args|
     add_overlay :reference, target, overlay, args
   end
+  
+  dsl_method :reference_overlay_tag do |target,overlay,*args|
+    add_overlay :reference, "%#{target}", overlay, args
+  end
 
   dsl_method :overlay do |target,overlay,*args|
     add_overlay :value, target, overlay, args
+  end
+  
+  dsl_method :overlay_tag do |target,overlay,*args|
+    add_overlay :value, "%#{target}", overlay, args
   end
 end

@@ -7,9 +7,9 @@ Some high level features:
 
 * Easily manage objects and dependencies
 * Enables writing reusable and testable code
-* Developer console (built on pry)
-* Automatic code reloading on changes in development
-* Powerful DSL toolkit
+* https://github.com/alki-project/alki-console[Developer console] (built on pry)
+* Automatic https://github.com/alki-project/alki-reload[code reloading]
+* Powerful https://github.com/alki-project/alki-dsl[DSL toolkit]
 * Extensible
 
 

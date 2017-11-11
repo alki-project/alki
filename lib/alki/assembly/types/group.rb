@@ -29,6 +29,9 @@ Alki do
         children: -> {
           children_names
         },
+        to_a: -> {
+          elements
+        },
         elements: -> {
           children.inject([]) do |elems, child_name|
             child = send(child_name)

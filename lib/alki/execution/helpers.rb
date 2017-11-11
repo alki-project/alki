@@ -28,6 +28,10 @@ module Alki
         end
         Alki::ServiceDelegator.new self, path
       end
+
+      def reference(path,*args,&blk)
+        __reference__ path, args, blk
+      end
     end
   end
 end

@@ -5,12 +5,16 @@ Alki do
     @uses = []
   end
 
-  dsl_method :use do |name,service_path = name|
+  helper :add_use do |name,service_path = name|
     if name.is_a?(Hash) && name.size == 1
       name, service_path = name.to_a.first
     end
     add_initialize_param name
     @uses << service_path.to_s
+  end
+
+  dsl_method :use do |name,service_path = name|
+    add_use name, service_path
   end
 
   finish do

@@ -32,4 +32,24 @@ describe 'References' do
       )
     end
   end
+
+  describe 'reference objects' do
+    before do
+      @obj = Alki.singleton_assembly do
+        service :broken do
+          1.foo
+        end
+      end
+    end
+    it 'should raise errors correctly after reload' do
+      ref = @obj.__reference_broken__
+      assert_raises NoMethodError do
+        ref.call
+      end
+      @obj.__reload__
+      assert_raises NoMethodError do
+        ref.call
+      end
+    end
+  end
 end

@@ -22,7 +22,7 @@ module Alki
 
           methods[:"__raw_#{name}__"] = {
             body:->(*args,&blk) {
-              @__executor__.execute @__meta__, path, args, blk
+              __executor__.execute @__meta__, path, args, blk
             },
             private: true
           }

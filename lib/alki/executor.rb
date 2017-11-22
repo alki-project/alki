@@ -8,12 +8,13 @@ module Alki
   class Executor
     attr_accessor :root, :meta
 
-    def initialize
+    def initialize(instance)
       @semaphore = Concurrent::ReentrantReadWriteLock.new
       @lookup_cache = {}
       @call_cache = {}
       @context_cache = {}
       @data = nil
+      @instance = instance
     end
 
     def lock
@@ -123,7 +124,7 @@ module Alki
       case type
         when :value then value
         when :proc then proc.call *args, &blk
-        when :class then value.new(self,meta).__call__ *args, &blk
+        when :class then value.new(@instance,meta).__call__ *args, &blk
       end
     end
 

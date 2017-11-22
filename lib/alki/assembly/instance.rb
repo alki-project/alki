@@ -1,6 +1,7 @@
 require 'delegate'
 require 'concurrent'
 require 'alki/support'
+require 'alki/executor'
 require 'alki/assembly/instance_builder'
 
 module Alki
@@ -18,10 +19,10 @@ module Alki
 
       def __reload__
         @lock.with_read_lock do
-          if @obj
+          unless @needs_load
             @lock.with_write_lock do
+              @version += 1
               @needs_load = true
-              @version+=1
             end
           end
         end
@@ -69,9 +70,9 @@ module Alki
         @lock.with_write_lock do
           @needs_load = false
           @obj.__unload__ if @obj.respond_to?(:__unload__)
-          InstanceBuilder.build @assembly_module, @overrides do |instance,executor|
+          @executor = Executor.new(self)
+          InstanceBuilder.build @executor,@assembly_module, @overrides do |instance|
             @obj = instance
-            @executor = executor
             self
           end
         end

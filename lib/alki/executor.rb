@@ -90,7 +90,7 @@ module Alki
     def data_copy
       unless @data
         @data = {}
-        @meta.each do |(from,meta)|
+        @meta.each do |from, meta|
           meta.process self, from, @data
         end
         IceNine.deep_freeze @data

@@ -1,6 +1,7 @@
 require 'alki/dsl'
 require 'alki/overrides'
 require 'alki/assembly/types'
+require 'alki/assembly/meta_list'
 
 module Alki
   module OverrideBuilder
@@ -10,9 +11,9 @@ module Alki
           data = Alki::Dsl.build('alki/dsls/assembly_group',&blk)
           Overrides.new data[:root], data[:meta]
         elsif override_hash && !override_hash.empty?
-          Overrides.new create_override_group(override_hash), []
+          Overrides.new create_override_group(override_hash), Alki::Assembly::MetaList.new
         else
-          Overrides.new build_type(:group), []
+          Overrides.new build_type(:group), Alki::Assembly::MetaList.new
         end
       end
 

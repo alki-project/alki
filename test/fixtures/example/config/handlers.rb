@@ -23,6 +23,7 @@ Alki do
     num_handler 15, settings.fizzbuzz
   end
 
+  tag :io
   service :echo do
     require 'example/echo_handler'
     Example::EchoHandler.new output

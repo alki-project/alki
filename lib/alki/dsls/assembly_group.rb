@@ -1,11 +1,12 @@
 require 'alki/override_builder'
 require 'alki/support'
 require 'alki/overlay_info'
+require 'alki/assembly/meta_list'
 
 Alki do
   init do
     ctx[:root] = build(:group,{})
-    ctx[:meta] = []
+    ctx[:meta] = Alki::Assembly::MetaList.new
     ctx[:addons] ||= []
     ctx[:addons].each do |addon|
       require_dsl addon
@@ -14,7 +15,7 @@ Alki do
 
   helper :add do |name,elem|
     if defined?(@tags) && @tags
-      ctx[:meta] << [[name.to_sym],build_meta(:tags,@tags)]
+      ctx[:meta].add name, build_meta(:tags,@tags)
       @tags = nil
     end
     ctx[:root].children[name.to_sym] = elem
@@ -30,15 +31,12 @@ Alki do
   end
 
   helper :add_overlay do |type,target,overlay,args|
-    (ctx[:meta]||=[]) << [
-      [],
-      build_meta(
-        :overlay,
-        type, target.to_s.split('.').map(&:to_sym),
-        overlay.to_s.split('.').map(&:to_sym),
-        args
-      )
-    ]
+    ctx[:meta].add build_meta(
+      :overlay,
+      type, target.to_s.split('.').map(&:to_sym),
+      overlay.to_s.split('.').map(&:to_sym),
+      args
+    )
   end
 
   helper :prefix_meta do |*prefix,meta|
@@ -46,10 +44,6 @@ Alki do
       data[0].unshift *prefix.map(&:to_sym)
     end
     meta
-  end
-
-  helper :update_meta do |*prefix,meta|
-    ctx[:meta].push *prefix_meta(*prefix,meta)
   end
 
   dsl_method :use do |addon_name|
@@ -96,7 +90,7 @@ Alki do
   dsl_method :group do |name,&blk|
     grp = Alki::Dsls::AssemblyGroup.build(addons: ctx[:addons], &blk)
     add name, grp[:root]
-    update_meta name, grp[:meta]
+    ctx[:meta].append! name, grp[:meta]
   end
 
   dsl_method :auto_group do |name,dir,callable,*args|
@@ -124,18 +118,15 @@ Alki do
     end
     grp = Alki.load(File.join(ctx[:prefix],name))
     add group_name, grp.root
-    update_meta group_name, grp.meta
+    ctx[:meta].append group_name, grp.meta
   end
 
   dsl_method :mount do |name,pkg=name.to_s,**overrides,&blk|
     klass = Alki.load pkg
-    mounted_meta = klass.meta.map do |(path,type,info)|
-      [path.dup,type,info]
-    end
-    update_meta name, mounted_meta
+    ctx[:meta].append name, klass.meta
 
     overrides = Alki::OverrideBuilder.build overrides, &blk
-    update_meta name, overrides.meta
+    ctx[:meta].append! name, overrides.meta
 
     add name, build(:assembly, klass.root, overrides.root)
   end

@@ -28,6 +28,12 @@ module Alki
         end
       end
 
+      def __reloading__
+        @lock.with_read_lock do
+          @needs_load
+        end
+      end
+
       def __version__
         @lock.with_read_lock do
           @version
@@ -69,11 +75,16 @@ module Alki
       def __load__
         @lock.with_write_lock do
           @needs_load = false
-          @obj.__unload__ if @obj.respond_to?(:__unload__)
-          @executor = Executor.new(self)
-          InstanceBuilder.build @executor,@assembly_module, @overrides do |instance|
-            @obj = instance
-            self
+          begin
+            @obj.__unload__ if @obj.respond_to?(:__unload__)
+            @executor = Executor.new(self)
+            InstanceBuilder.build @executor,@assembly_module, @overrides do |instance|
+              @obj = instance
+              self
+            end
+          rescue Exception
+            @needs_load = true
+            __raise__
           end
         end
       end

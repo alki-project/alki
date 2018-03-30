@@ -1,21 +1,25 @@
-# What is Alki?
+= What is Alki?
 
 Alki (AL-kai) is a Dependency Injection framework for Ruby. Alki is designed to help organize and scale your project,
 so you can focus on the important stuff.
-It can be used alongside frameworks such as Ruby on Rails.
+It can be used alongside frameworks such as http://alki.io/projects/alki-rails.html[Ruby on Rails].
 
 Some high level features:
 
 * Easily manage objects and dependencies
 * Enables writing reusable and testable code
 * Requires no annotations, mixins, or other changes to your code.
-* https://github.com/alki-project/alki-console[Developer console] (built on pry)
-* Automatic https://github.com/alki-project/alki-reload[code reloading]
-* Powerful https://github.com/alki-project/alki-dsl[DSL toolkit]
+* http://alki.io/projects/alki-console.html[Developer console] (built on pry)
+* Automatic http://alki.io/projects/alki-reload.html[code reloading]
+* Powerful http://alki.io/projects/alki-dsl/[DSL toolkit]
 * Extensible
 
+For more documentation, check out http://alki.io[alki.io].
 
-## Installation
+For questions or discussion about Alki, head over to the https://groups.google.com/forum/#!forum/alki-project[Google Group].
+
+[[installation]]
+== Installation
 
 Add this line to your application's Gemfile:
 
@@ -31,19 +35,298 @@ Or install it yourself as:
 
     $ gem install alki
 
-## Introduction
-
-[NOTE]
-Full "todo" example can be found https://github.com/alki-project/alki-examples/tree/master/todo[here]
+== How to use Alki
 
 Alki simplifies project organization by pulling out all of the "connective tissue"
-that connects our classes and modules together, and puts them into a special object
-called an Assembly.
+that connects your classes and modules together.
+Alki provides a central place to build your application objects,
+where they can easily refer to other objects,
+and access configuration settings.
 
-There are many ways to use Assemblies, but the most common is to have a single
-Assembly for a project. For example, if you hade a "todo" command line utility
-project that you wanted to use Alki with, all you would need to do to create
-an Assembly is add this file.
+For example,
+if your project has an http client
+
+.my_project/http_client.rb
+```ruby
+module MyProject
+  class HttpClient
+    ...
+  end
+end
+```
+
+you might normally use it by either creating a new instance of it when needed,
+or directly calling methods on the class.
+
+```ruby
+client = MyProject::HttpClient.new
+client.get '/page1.html'
+# -or-
+MyProject::HttpClient.get '/page1.html'
+```
+
+With Alki, you would instead define instructions for how to build the http client.
+
+.config/assembly.rb
+```ruby
+Alki do
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new
+  end
+end
+```
+
+The 'service' method defines a new object with the name 'http_client',
+and the provided block contains the code needed to build it.
+
+To use the http client, an "Assembly" for the project has to be created.
+Assemblies are container objects that hold your application objects once
+they're built.
+
+Typically you can just add the following code to your project's main library file.
+More information can be found about this method http://alki.io/assemblies/project_assemblies.html[here].
+
+.lib/my_project.rb
+```ruby
+require 'alki'
+Alki.project_assembly!
+```
+
+This will add a 'new' method to the the MyProject module,
+which will return a new Assembly instance.
+The http client can be accessed by calling the method that matches the name we chose for it
+when it was defined,
+'http_client'.
+
+```ruby
+require 'my_project'
+
+app = MyProject.new
+app.http_client.get '/page1.html'
+```
+
+=== Configuration Settings
+
+Most projects, at some point,
+have to deal with configuration settings.
+
+In Ruby the typical pattern is to reference Modules and Classes directly,
+either by constructing them on demand when needed,
+or calling class methods on them.
+
+Often this leaves Modules and Classes to essentially have to configure themselves.
+Sometimes this is by pulling configuration from the environment or a configration file,
+sometimes it's by requiring a global variable to be set before the class is used.
+
+This means that classes are often cluttered with configuration code.
+Classes from different libraries might have different, inconsistent ways of being configured,
+and it can be difficult if not impossible to change how they're configured.
+
+In Alki, configuration becomes straightforward.
+Classes can just take configuration settings as initializer parameters,
+without worrying about where they comes from.
+
+.lib/my_project/http_client.rb
+```
+module MyProject
+  class HttpClient
+    def initializer(base_uri)
+      @base_uri = base_uri
+    end
+    ...
+  end
+end
+```
+
+Then the Assembly can be updated to pass in a configuration parameter.
+We can also define a new element for our base_url setting.
+
+.config/assembly.rb
+```ruby
+Alki do
+  set :http_base_url do
+     ENV.fetch('HTTP_BASE_URL')
+  end
+
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new http_base_url
+  end
+end
+```
+
+The 'set' method is used to define simple values in the Assembly,
+and the http client can refer to it by name.
+
+Nothing changes with how we use the http client,
+but it's now pulling it's configuration from the environment.
+
+Changing this to have a default value,
+pull from a different source,
+or have multiple clients with different configuration parameters
+can be done easily without changing the class code.
+
+For example,
+to change the settings to come from a YAML file we can define a new
+element to parse the YAML file,
+and then redifine our setting to pull it's value from the parsed options.
+Note that the order doesn't matter.
+Even if a dependency is defined after an element that uses it,
+the objects will still be built in the correct order.
+
+.config/assembly.rb
+```ruby
+Alki do
+  set :yaml_settings do
+    require 'yaml'
+    YAML.load_file File.join(config_dir,'settings.yml')
+  end
+
+  set :http_base_url do
+    yaml_settings['http_base_ur']
+  end
+
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new http_base_url
+  end
+end
+```
+
+No changes to the class,
+or in this case even the build code for the http client,
+are required.
+
+Configuration settings can be grouped together in the assembly,
+to namespace them.
+This group can be called anything, but we'll call it 'settings'.
+
+.config/assembly.rb
+```ruby
+Alki do
+  group :settings do
+    set :http_base_url do
+      yaml_settings['http_base_ur']
+    end
+
+    set :yaml_settings do
+      require 'yaml'
+      YAML.parse(File.read(File.join(config_dir,'settings.yml')))
+    end
+  end
+
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new settings.http_base_url
+  end
+end
+```
+
+The can also be moved to an entirely different file to keep them
+seperate from your application objects.
+
+.config/settings.rb
+```ruby
+Alki do
+  set :http_base_url do
+    yaml_settings['http_base_ur']
+  end
+
+  set :yaml_settings do
+    require 'yaml'
+    YAML.parse(File.read(File.join(config_dir,'settings.yml')))
+  end
+end
+```
+
+.config/assembly.rb
+```ruby
+Alki do
+  load :settings
+
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new settings.http_base_url
+  end
+end
+```
+
+== Dependency Injection
+
+Dependency Injection is a way of designing your classes to maximise
+their modularity and reusability.
+
+Much like with configuration settings,
+instead of directly referencing a classes dependencies a depenency injected
+class takes it's dependencies as arguments.
+
+The advantage of this is that classes can be developed and tested in isolation,
+can have dependencies easily changed by other code (like users of a library),
+or have multiple instances with different dependencies.
+
+Like configuration settings,
+a lot of Ruby projects end up needing some amount of dependency injection,
+but it's typically implemented in an ad-hoc way with class variables or other global
+variables.
+
+With Alki, dependency injection is the norm and very straightforward.
+
+Perhaps we have client for API that works over HTTP.
+We can write our API client so that it takes an HTTP client as an arugment
+and just calls methods on it.
+It doesn't need to pick a particular client library or decide what configuration
+settings it should have.
+
+.lib/my_project/api_client.rb
+```ruby
+module MyProject
+  class ApiClient
+    def initialize(http_client)
+      @http_client = http_client
+    end
+
+    def all
+      parse_response @http_client.get('/all.json')
+    end
+
+    ...
+   end
+end
+```
+
+With this design it's easy to change out the http client,
+or provide a stubbed or mocked one for testing.
+It maximizes the reusability of our API client
+because it only handles one thing
+(Single Responsibility Principle). 
+
+To add it to the previous assembly definition.
+
+.config/assembly.rb
+```ruby
+  load :settings
+
+  service :api_client do
+    require 'my_project/api_client'
+    MyProject::ApiClient.new http_client
+  end
+
+  service :http_client do
+    require 'my_project/http_client'
+    MyProject::HttpClient.new settings.http_base_url
+  end
+```
+
+== Example
+
+[NOTE]
+Full "todo" source code can be found https://github.com/alki-project/alki-examples/tree/master/todo[here]
+
+To demonstrate how a full Alki project can be put together,
+we'll go through an example application.
+This application is a little todo list command line utility
+that stores the todo list in a json file.
 
 .lib/todo.rb
 ```ruby
@@ -61,25 +344,25 @@ $ bundle exec irb -Ilib
  => #<Todo:21964520>
 ```
 
-### Defining Elements
+[[defining-elements]]
+=== Defining Elements
 
-Adding things to the assembly requires an assembly definition file. By convention this is
-named `config/assembly.rb` and is built using a simple DSL. There are
-a handful of different element types in Assemblies. Below are a few of the
-most common. Full documentation of the DSL can be found at http://alki.io[alki.io].
-
+Adding things to the assembly requires an Assembly definition file.
+By convention this is named `config/assembly.rb` and is built using a DSL.
+There are a handful of different element types in Assemblies.
 Elements can refer to other elements, and can be defined in any order.
+
+Full documentation of the DSL can be found http://alki.io/dsl/[here].
+
+Below is an example Assembly definition for the todo application
+which uses a few of the core element types.
 
 .config/assembly.rb
 ```ruby
 Alki do
-  group :settings do <1>
-    set(:home) { ENV['HOME'] } <2>
-    set(:db_path) { ENV['TODO_DB_PATH'] || File.join(home,'.todo_db') }
-    set :prompt, 'todo> '
-  end
+  load :settings
 
-  service :interface do <3>
+  service :interface do
     require 'todo/readline_interface'
     Todo::ReadlineInterface.new settings.prompt, handler
   end
@@ -100,11 +383,21 @@ Alki do
   end
 end
 ```
-<1> `group` allows bundling together subelements (and which can be moved to their own files)
-<2> `set` defines simple values
-<3> `service` defines our main application objects
 
-Any element can be accessed directly from the assembly object.
+Along with a settings file to define our application settings.
+
+.config/settings.rb
+```ruby
+Alki do
+ set(:home) { ENV['HOME'] }
+ set(:db_path) { ENV['TODO_DB_PATH'] || File.join(home,'.todo_db') }
+ set :prompt, 'todo> '
+end
+```
+
+Settings and services can be accessed by requiring the main "lib/todo.rb" file,
+creating a new assembly instance,
+and then calling methods to refer to the different elements.
 
 ```
 $ bundle exec irb -Ilib
@@ -112,7 +405,9 @@ $ bundle exec irb -Ilib
  => true
 2.4.0 :002 > todo = Todo.new
  => #<Todo:21964520>
-2.4.0 :003 > todo.interface.run
+2.4.0 :003 > todo.settings.prompt
+ => "> "
+2.4.0 :004 > todo.interface.run
 > ?
 All commands can be shortened to their first letters
 print
@@ -126,8 +421,11 @@ quit
 
 ```
 
-The 'alki-console' tool can also be used to quickly work with assemblies.
-Add `gem 'alki-console'` to your Gemfile and run `bundle --binstubs`.
+The http://alki.io/projects/alki-console.html[alki-console] developer console gem can also be used to quickly work with assemblies.
+It can be used by adding `gem 'alki-console'` to the Gemfile and running `bundle --binstubs` to add the console script to the 'bin' directory.
+
+Elements can be accessed directly without having to manually create an
+assembly instance.
 
 ```
 $ bin/alki-console
@@ -135,63 +433,45 @@ todo> settings.prompt
 => 'todo> '
 ```
 
+[[executable]]
 ### Creating an executable
 
-Read more about creating executables with Alki
-http://alki.io/executables.html[here].
+Read more about creating executables with Alki,
+including how to create executables to distribute in a gem,
+http://alki.io/assemblies/executables.html[here]
 
 In the todo example, it's a CLI utility so it requires an executable.
 The executable just needs to require the main project file,
 create a new instance of the assembly,
 and call a method on a service.
 
-.exe/todo
+.bin/todo
 ```ruby
+#!/usr/bin/env ruby
+
+# Setup 
+require 'bundler/setup'
+require 'alki/bin'
+
 require 'todo'
 Todo.new.interface.run
 ```
 
-### Splitting up the Assembly configuration
-
-As a project grows, it's helpful to be able to split out
-parts of the Assembly configuration into multiple files.
-
-This can be accomplished with the `load` method in the DSL,
-which will load the named file and add it the elements
-defined in it as a group in the assembly.
-
-For example, it's common to split out application settings into
-a separate config file.
-
-.config/settings.rb
-```ruby
-Alki do
- set(:home) { ENV['HOME'] }
- set(:db_path) { ENV['TODO_DB_PATH'] || File.join(home,'.todo_db') }
- set :prompt, 'todo> '
-end
+```
+$ bin/todo
+> print
+1. take out the trash
+> quit
+$
 ```
 
-.config/assembly.rb
-```ruby
-Alki do
-  load :settings
+== Documentation
 
-  service :interface do
-    require 'todo/readline_interface'
-    Todo::ReadlineInterface.new settings.prompt, handler
-  end
+More documentation can be found at http://alki.io[alki.io],
+with in-depth explanations of http://alki.io/assemblies/[Assemblies],
+http://alki.io/dsl/[the Assembly DSL], and other
+http://alki.io/projects/[projects] that are part of Alki.
 
-  ...
-end
-```
-
-## Further Documentation
-
-Further documentation can be found at http://alki.io[alki.io].
-
-Example projects can be found https://github.com/alki-project/alki-examples[here]
-
-## Authors
+== Authors
 
 Written by Matt Edlefsen

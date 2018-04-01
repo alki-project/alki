@@ -13,7 +13,7 @@ describe 'Auto Group' do
   end
 
   it 'should create a group containing all items' do
-    @obj.grp.children.must_equal [:a,:one]
+    @obj.grp.children.sort.must_equal [:a,:one]
     @obj.grp.one.value.must_equal 1
     @obj.grp.a.children.must_equal [:two]
     @obj.grp.a.two.value.must_equal 2

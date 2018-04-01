@@ -10,7 +10,6 @@ Alki do
 
   num_handler :fizz, 3
 
-
   group :handlers do
     num_handler :buzz, 5
   end

@@ -1,5 +1,7 @@
 = What is Alki?
 
+image:https://travis-ci.org/alki-project/alki.svg?branch=master["Build Status", link="https://travis-ci.org/alki-project/alki"]
+
 Alki (AL-kai) is a Dependency Injection framework for Ruby. Alki is designed to help organize and scale your project,
 so you can focus on the important stuff.
 It can be used alongside frameworks such as http://alki.io/projects/alki-rails.html[Ruby on Rails].

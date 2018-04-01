@@ -53,7 +53,7 @@ describe 'Overrides' do
 
   it 'should allow calling original when mounted' do
     other = @assembly
-    instance = Alki.singleton_assembly do
+    instance = Alki.new do
       mount :assembly, other do
         set :val do
           original.val

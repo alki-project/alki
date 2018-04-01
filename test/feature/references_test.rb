@@ -3,7 +3,7 @@ require 'alki/feature_test'
 describe 'References' do
   describe 'circular references' do
     before do
-      @assembly = Alki.singleton_assembly do
+      @assembly = Alki.new do
         set :a do
           b
         end
@@ -35,7 +35,7 @@ describe 'References' do
 
   describe 'reference objects' do
     before do
-      @obj = Alki.singleton_assembly do
+      @obj = Alki.new do
         service :broken do
           1.foo
         end

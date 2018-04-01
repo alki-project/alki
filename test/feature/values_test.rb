@@ -7,7 +7,7 @@ describe 'Values' do
         true
       end
     end.new
-    Alki.singleton_assembly do
+    Alki.new do
       set :obj, obj
     end
   end

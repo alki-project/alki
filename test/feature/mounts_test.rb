@@ -6,7 +6,7 @@ describe 'Mounts' do
       set :val, :test
     end
 
-    assembly = Alki.singleton_assembly do
+    assembly = Alki.new do
       mount :mounted, AlkiTest
     end
 

@@ -13,7 +13,7 @@ module Alki
       end
 
       def elements_in(tag)
-        @tag_map[tag]&.keys || []
+        (@tag_map[tag] && @tag_map[tag].keys) || []
       end
 
       def index(key)
